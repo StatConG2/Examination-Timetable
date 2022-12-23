@@ -3,7 +3,6 @@ library(shinythemes)
 library(shinydashboard)
 
 
-
 ui = navbarPage(
   "Examination Timetable Dashboard", theme = shinytheme("slate"),
    tabPanel("Overview",
