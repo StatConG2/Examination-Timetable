@@ -6,6 +6,9 @@ library(shinydashboard)
 
 ui = navbarPage(
   "Examination Timetable Dashboard", theme = shinytheme("slate"),
+  tabPanel("Overview",
+           h2("KPI Dashboard")
+  ),  
    tabPanel("Exam Distribution",
             sidebarLayout(
               sidebarPanel(
