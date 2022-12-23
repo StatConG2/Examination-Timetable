@@ -15,8 +15,7 @@ ui = navbarPage(
                   choices = c("First Year",
                               "Second Year",
                               "Third Year",
-                              "Fourth Year",
-                              "fifth year"), 
+                              "Fourth Year"), 
                   selected = "All",
                   multiple = FALSE
                 ),
