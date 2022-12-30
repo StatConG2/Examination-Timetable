@@ -85,12 +85,8 @@ ui = navbarPage(
                  selected = "All",
                  multiple = TRUE
                ),
-               dateRangeInput('dateRange2',
-                              label = 'Date',
-                              start = Sys.Date(), end = Sys.Date() + 9,
-                              separator = "-", 
-                              weekstart = 1),
-               tags$style(HTML(".datepicker {z-index:99999 !important;}"))
+               shinyWidgets::airDatepickerInput("daterange", "Date range:",
+                                                range = TRUE)
              ),
              mainPanel(
                
