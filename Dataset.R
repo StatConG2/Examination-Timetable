@@ -25,20 +25,22 @@ head(newData)
 newData$year <- as.integer(str_sub(newData$year,1,1))
 head(newData)
 
-#Changing the data format of the credits
+# Changing the data format of the credits
 newData$credits <- as.numeric(newData$credits)
 
-#extract starting time
+# extract starting time
 newData$start_time <- format(as.numeric(str_sub(newData$time,1,5)), nsmall = 2)
 newData$start_time <- ifelse(as.integer(newData$start_time) >= 7 & as.integer(newData$start_time) < 12, paste(newData$start_time, "AM"), paste(newData$start_time, "PM"))
 newData$start_24hrs <- format(strptime(newData$start_time, format = "%I.%M %p"), format = '%H:%M')
 head(newData, 30)
 finalData <- subset(newData, select=c(1,2,9,10,3,4,8,6,5,7))
-view(finalData)
-
+finalData$venue <- replace(finalData$venue, finalData$venue=="Statistics Computer La", "Statistics Computer Lab")
+finalData
 # exporting final dataset
-library("writexl")
-write_xlsx(finalData, "E:\\4th Year\\4th Year Courses\\STA 474 2.0 Statistical Consultancy\\Project 1\\Datasets\\finalDataset.xlsx")
+#library("writexl")
+#write_xlsx(finalData, "E:\\4th Year\\4th Year Courses\\STA 474 2.0 Statistical Consultancy\\Project 1\\Datasets\\finalDataset.xlsx")
 
 # Unique venue list
 venues <- unique(finalData$venue)
+venues <- sort(venues)
+venues

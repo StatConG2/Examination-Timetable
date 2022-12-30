@@ -2,6 +2,8 @@ library(shiny)
 library(shinythemes)
 library(shinydashboard)
 
+#Source data
+source('Dataset.R')
 
 ui = navbarPage(
   "Examination Timetable Dashboard", theme = shinytheme("slate"),
@@ -102,12 +104,13 @@ ui = navbarPage(
                selectInput(
                  inputId = "location3",
                  label = "Location(s)",
-                 choices = c("NFC 4",
-                             "Science Auditorium"), 
+                 choices = venues, 
                  selected = "All",
                  multiple = TRUE
-               )
-             ),
+               ),
+               uiOutput("date_range_3")
+               ),
+             
              mainPanel(
                
              )
@@ -116,45 +119,34 @@ ui = navbarPage(
                 )
 
 
-server <- function(input, output) {
+server <- function(input, output, session) {
     
-    # Reactive expression to generate the requested distribution ----
-    # This is called whenever the inputs change. The output functions
-    # defined below then use the value computed from this expression
-    d <- reactive({
-      dist <- switch(input$dist,
-                     norm = rnorm,
-                     unif = runif,
-                     lnorm = rlnorm,
-                     exp = rexp,
-                     rnorm)
-      
-      dist(input$n)
-    })
+  rv <- reactiveValues(start = as.Date(Sys.Date()), end = as.Date(Sys.Date()))
+  
+  observe({
+    req(input$date_range_3)
     
-    # Generate a plot of the data ----
-    # Also uses the inputs to build the plot label. Note that the
-    # dependencies on the inputs and the data reactive expression are
-    # both tracked, and all expressions are called in the sequence
-    # implied by the dependency graph.
-    output$plot <- renderPlot({
-      dist <- input$dist
-      n <- input$n
-      
-      hist(d(),
-           main = paste("r", dist, "(", n, ")", sep = ""),
-           col = "#007bc2", border = "white")
-    })
-    
-    # Generate a summary of the data ----
-    output$summary <- renderPrint({
-      summary(d())
-    })
-    
-    # Generate an HTML table view of the data ----
-    output$table <- renderTable({
-      d()
-    })
+    inputDates <- as.Date(input$date_range_3)
+
+    if(inputDates[2] >= inputDates[1]) {
+      rv$start <- inputDates[1]
+      rv$end <- inputDates[2]
+    } else {
+      rv$start <- inputDates[1]
+      rv$end <- inputDates[1]
+    }
+  })
+  
+  output$date_range_3 <- renderUI({
+    dateRangeInput(
+      inputId = "dateRange3",
+      label = "Date",
+      start = rv$start,
+      end = rv$end,
+      min = Sys.Date(),
+      separator = "-", 
+      weekstart = 1)
+  })
     
 }
 
