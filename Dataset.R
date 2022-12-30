@@ -43,5 +43,7 @@ finalData$venue <- replace(finalData$venue, finalData$venue=="Statistics Compute
 # Unique venue list
 venues <- sort(unique(finalData$venue))
 
+# Unique subject list
+subjects <- sort(unique(finalData$subject))
 
 

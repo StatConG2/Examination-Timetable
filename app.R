@@ -38,8 +38,7 @@ ui = navbarPage(
                 selectInput(
                   inputId = "sub1",
                   label = "Subject(s)",
-                  choices = c("Chemistry",
-                              "Statistics"), 
+                  choices = subjects, 
                   selected = "All",
                   multiple = TRUE
                 )
@@ -80,13 +79,12 @@ ui = navbarPage(
                selectInput(
                  inputId = "sub2",
                  label = "Subject(s)",
-                 choices = c("Chemistry",
-                             "Statistics"), 
+                 choices = subjects, 
                  selected = "All",
                  multiple = TRUE
                ),
                shinyWidgets::airDatepickerInput("daterange", "Date range:",
-                                                range = TRUE)
+                                                range = TRUE, minDate = Sys.Date())
              ),
              mainPanel(
                
@@ -104,7 +102,8 @@ ui = navbarPage(
                  selected = "All",
                  multiple = TRUE
                ),
-               uiOutput("date_range_3")
+               shinyWidgets::airDatepickerInput("daterange", "Date range:",
+                                                range = TRUE, minDate = Sys.Date())
                ),
              
              mainPanel(
@@ -117,32 +116,6 @@ ui = navbarPage(
 
 server <- function(input, output, session) {
     
-  rv <- reactiveValues(start = as.Date(Sys.Date()), end = as.Date(Sys.Date()))
-  
-  observe({
-    req(input$date_range_3)
-    
-    inputDates <- as.Date(input$date_range_3)
-
-    if(inputDates[2] >= inputDates[1]) {
-      rv$start <- inputDates[1]
-      rv$end <- inputDates[2]
-    } else {
-      rv$start <- inputDates[1]
-      rv$end <- inputDates[1]
-    }
-  })
-  
-  output$date_range_3 <- renderUI({
-    dateRangeInput(
-      inputId = "dateRange3",
-      label = "Date",
-      start = rv$start,
-      end = rv$end,
-      min = Sys.Date(),
-      separator = "-", 
-      weekstart = 1)
-  })
     
 }
 
