@@ -2,6 +2,9 @@
 ## -- Import Data
 library(readxl)
 mainData <- read_excel("Examination timatable.xlsx")
+
+Dataset_1 <- read_excel("Dataset_1.xlsx")
+
 #View(mainData)
 head(mainData)
 
@@ -57,4 +60,45 @@ venues <- sort(unique(finalData$venue))
 # Unique subject list
 subjects <- sort(unique(finalData$subject))
 
+# Recode year variable
+Dataset_1 <- Dataset_1 %>% 
+  mutate(year =recode(year,
+                      "1" = "First Year",
+                      "2" = "Second Year",
+                      "3" = "Third Year",
+                      "4" = "Fourth Year"))
+
+# Create table1 and table2
+
+year <- rep(c("First Year","Second Year","Third Year","Fourth Year"),times=c(27,27,49,53))
+
+degreetype <- rep(c("General Degree","Special Degree","Extended Degree"),times=c(81,44,31))
+
+stream <- c(rep(c(rep(c("Physical"), times = 13), 
+                  rep(c("Biology"), times = 12), c("Food Science and Technology"), c("Sports Science and Management")),times=3),
+            rep(c(rep(c("Physical"), times = 10), 
+                  rep(c("Biology"), times = 10), c("Food Science and Technology"), c("Sports Science and Management")),times=2),
+            rep(c("Physical"), times = 14), 
+            rep(c("Biology"), times = 15), c("Food Science and Technology"), c("Sports Science and Management"))
+
+subject <- c(rep(c("MAT", "CHE", "PHY", "STA", "MAN", "CSC", "AMT", "ECN",
+                   "EES", "ICT", "EMF", "PST", "PSC", 
+                   "CHE", "ZOO", "PHY", "PBT", "PBL", "MBL", "EMF", "ARM", 
+                   "MAN", "FSC", "BIO", "GMB", "FST", "SSM"),times=3),
+             rep(c("MAT", "CHE", "PHY", "STA", "CSC", "AMT", "ICT",
+                   "EMF", "PST", "PSC", 
+                   "CHE", "ZOO", "PHY", "PBT","PBL", "MBL", "EMF", 
+                   "ARM", "BIO", "GMB", "FST", "SSM"),times=2),
+             "MAT", "CHE", "PHY", "STA", "MAN", "AMT", "ECN",
+             "EES", "ICT", "EMF", "PST", "PSC", "ASP", "ASC", 
+             "CHE", "ZOO", "PHY", "PBT", "PBL", "MBL", "EMF", 
+             "ARM", "MAN", "FSC", "BIO", "GMB", "FSC", "ASB", 
+             "ASC", "FST", "SSM")                                     
+
+table1 <- data.frame(year,degreetype,stream,subject)
+
+table2 <- table1 %>% 
+  left_join(Dataset_1%>%select(year,subject,subject_description) %>%
+              distinct(year,subject,.keep_all=TRUE),by=c("year","subject")) %>%
+  filter(!is.na(subject_description))
 
