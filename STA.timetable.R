@@ -1,3 +1,7 @@
+library(magrittr)
+library(dplyr)
+library(tidyr)
+
 Final_Dataset_2_STA <- readxl::read_excel("C:/Users/HP/Downloads/Final Dataset 2_ STA.xlsx")[,c(1:16)]
 
 Final_Dataset_2_STA <- Final_Dataset_2_STA %>%
@@ -8,4 +12,4 @@ Final_Dataset_2_STA <- Final_Dataset_2_STA %>%
                values_to = "core/optional") %>%
   mutate(`degree type`= paste0(`degree type`," Degree"))
 
-writexl::write_xlsx(Final_Dataset_2_STA,"D:\\University (4th year)\\2nd sem\\Statistical consultancy\\Project1 - Examdashboard\\Examination-Timetable\\Final_Dataset_2_STA.xlsx")
+writexl::write_xlsx(Final_Dataset_2_STA,"D:\\University (4th year)\\2nd sem\\Statistical consultancy\\Project1 - Examdashboard\\Examination-Timetable\\STA.timetable.xlsx")
