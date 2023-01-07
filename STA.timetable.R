@@ -7,3 +7,5 @@ Final_Dataset_2_STA <- Final_Dataset_2_STA %>%
   pivot_longer(c(14:16), names_to = "degree type",
                values_to = "core/optional") %>%
   mutate(`degree type`= paste0(`degree type`," Degree"))
+
+writexl::write_xlsx(Final_Dataset_2_STA,"D:\\University (4th year)\\2nd sem\\Statistical consultancy\\Project1 - Examdashboard\\Examination-Timetable\\Final_Dataset_2_STA.xlsx")
