@@ -4,8 +4,8 @@
 
 ### Year & Degree Types (Table 1)
 
-year <- c("1", "2", "3", "3", "4", "4")
-degreetype <- c("general", "general", "general", "special", "general", "extended")
+year <- c("First", "Second", "Third", "Third", "Fourth", "Fourth")
+degreetype <- c("General Degree", "General Degree", "General Degree", "Special Degree", "General Degree", "Extended Degree")
 table1 <- data.frame(year, degreetype)
 print(table1)
 
@@ -31,7 +31,7 @@ print(table2)
 
 ### Stream & Subject (Table 3)
 
-stream <- c(rep(c("physical"), times = 14), rep(c("biology"), times = 15), c("Food Science and Technology"), c("Sports Science and Management"))
+stream <- c(rep(c("Physical"), times = 14), rep(c("Biology"), times = 15), c("Food Science and Technology"), c("Sports Science and Management"))
 
 subject <- c("MAT", "CHE", "PHY", "STA", "MAN", "CSC", "AMT",
               "EES", "ICT", "EMF", "PST", "PSC", "ASP", "ASC", "CHE", "ZOO", "PHY",
