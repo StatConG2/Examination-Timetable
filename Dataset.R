@@ -45,7 +45,7 @@ head(newData, 30)
 
 finalData <- subset(newData, select=c(1,2,9,11,10,12,3,4,8,6,5,7))
 finalData$venue <- replace(finalData$venue, finalData$venue=="Statistics Computer La", "Statistics Computer Lab")
-#view(finalData)
+view(finalData)
 
 # exporting final dataset
 #library("writexl")
