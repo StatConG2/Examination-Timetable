@@ -14,14 +14,15 @@ print(table1)
 department <- c(rep(c("MAT"), times = 3), rep(c("ZOO"), times = 2), 
                 rep(c("CHE"), times = 2), rep(c("CSC"), times = 2),
                 rep(c("FAS"), times = 4), rep(c("PHY"), times = 2),
-                rep(c("FST"), times = 2), rep(c("BIO"), times = 2),
+                rep(c("FST"), times = 2), rep(c("BIO"), times = 3),
                 rep(c("PCH"), times = 2),
                 c("EMF", "GMB", "SSM", "STA"))
                 
                 
 subject <- c("MAT", "AMT", "MAN", "ARM", "ZOO", "CHE", "ICH", "CSC",
              "ICT", "ECN", "ASP", "ASB", "ASC", "PHY", "EES", "FST",
-             "FSC", "MBL", "PBL", "PCH", "PST", "EMF", "GMB", "SSM", "STA") 
+             "FSC", "BIO", "MBL", "PBL", "PCH", "PST", "EMF", "GMB", 
+             "SSM", "STA") 
 
 table2 <-  data.frame(department, subject)           
 
