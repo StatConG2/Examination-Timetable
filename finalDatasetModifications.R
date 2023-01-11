@@ -45,7 +45,7 @@ finalData <- finalData %>% drop_na(venue)
  
 # exporting final dataset
 # library("writexl")
-# write_xlsx(finalData, "finalData.xlsx")
+#writexl::write_xlsx(finalData, "finalData.xlsx")
  
 
 
