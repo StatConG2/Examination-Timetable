@@ -33,12 +33,12 @@ longNewData <- newData %>% pivot_longer(cols=c('venue1', 'venue2'),
 finalData <- longNewData %>% select(-c('venue_type'))
 
 finalData <- finalData %>% drop_na(venue)
- View(finalData)
+# View(finalData)
  
  
  # exporting final dataset
- library("writexl")
- write_xlsx(finalData, "finalData.xlsx")
+ #library("writexl")
+ #write_xlsx(finalData, "finalData.xlsx")
  
 
 
