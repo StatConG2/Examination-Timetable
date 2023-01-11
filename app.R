@@ -8,7 +8,7 @@ library(lubridate)
 library(plotly)
 
 #Source data
-source('Dataset.R')
+#source('Dataset.R')
 
 ui = navbarPage(
   
@@ -152,8 +152,14 @@ server <- function(input, output, session) {
                          label = "Select sub",
                          choices = sort(table3$subject_description)
     )
+    
+    location3 <- input$location3
+    
+    
+    
   })
   
+  ### Overview Section
   output$Starting.Date <- renderValueBox({
     
     sub1 <- input$sub
@@ -248,6 +254,11 @@ server <- function(input, output, session) {
              plot_bgcolor='#252A2E')
     
   })
+  
+  
+  ### Location/s Section
+  
+  
   
 }
 

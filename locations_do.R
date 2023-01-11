@@ -2,11 +2,10 @@
 
 ## ---- uniquevenues
 source('Dataset.R')
-venues
 
-df1 <- subset(finalData, select = c(date,time,start_time,end_time,start_24hrs,end_24hrs,venue))
-view(df1)
-class(df$date)
+df <- subset(finalData, select = c(date,time,start_time,end_time,start_24hrs,end_24hrs,venue))
+
+class(as.numeric(df$start_24hrs))
 
 library(tidyverse)
 library(ggplot2)
