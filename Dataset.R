@@ -38,10 +38,11 @@ newData$start_time <- ifelse(as.integer(newData$start_time) >= 7 & as.integer(ne
 newData$start_24hrs <- format(strptime(newData$start_time, format = "%I.%M %p"), format = '%H:%M')
 head(newData, 30)
 
-comb_date_time <- paste(as.character(newData$date), newData$start_24hrs)
+comb_date_time <- paste(as.character(newData$date), newData$start_24hrs) 
 
+timestampDate <- strptime(comb_date_time, "%Y-%m-%d %H:%M", tz="UTC")
 
-
+class(timestampDate)
 
 # extract end time
 newData$end_time <- format(as.numeric(str_sub(newData$time,9,13)), nsmall = 2)
