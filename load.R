@@ -73,6 +73,8 @@ colnames(locationColors) <- c('venue', 'venue_hex_code')
 
 mainData <- mainData %>% left_join( locationColors, by=c('venue'))
 
+## --- Changing stream for basic mathematics course in first year
+mainData[mainData$course == "Basic Mathematics" & mainData$subject == "MAT","stream",drop=TRUE] <- "Biology"
 
 ## --- Data preparation for overview
 
