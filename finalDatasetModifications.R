@@ -1,6 +1,6 @@
 ## -- Import Data
 library(readxl)
-mainData <- read_excel("Dataset_2.xlsx")
+mainData <- read_excel("Dataset_3.xlsx")
 # View(mainData)
 head(mainData)
 
@@ -57,6 +57,7 @@ finalData <- finalData %>% drop_na(venue)
 
 
 # exporting final dataset
- library("writexl")
+# library("writexl")
 # writexl::write_xlsx(finalData, "finalData.xlsx")
 # count(unique(finalData))
+# count(finalData)
