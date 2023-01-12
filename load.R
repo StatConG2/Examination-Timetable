@@ -77,17 +77,17 @@ mainData <- mainData %>% left_join( locationColors, by=c('venue'))
 ## --- Data preparation for overview
 
 overviewData <- subset(mainData, select = c(date, stream, year, degree_type, subject, subject_description, course_code, course, core_optional, dist_hex_code))
-
+overviewData <- unique(overviewData)
 
 ## --- Data preparation for examination distribution
 
 distributionData <- subset(mainData, select = c(date, time, stream, year, degree_type, subject, subject_description, course_code, course, core_optional, venue, dist_hex_code))
-
+distributionData <- unique(distributionData)
 
 ## --- Data preparation for location distribution
 
 locationData <- subset(mainData, select = c(date, start_24hrs, end_24hrs, start, end, venue, venue_hex_code))
-
+locationData <- unique(locationData)
 
 ## --- unique columns needed
 
@@ -115,7 +115,8 @@ subdesList <- unique(mainData$subject_description)
 # Course 
 courseList <- unique(mainData$course)
 
-
+# English courses
+eng.courseList <- unique(mainData[mainData$subject=="ENG","course",drop=TRUE])
 
 
 
