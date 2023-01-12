@@ -1,6 +1,8 @@
 
 ## --- Import Libraries
 library(readxl)
+library(tidyverse)
+library(dplyr)
 
 ## --- Load Data
 mainData <- read_excel("finalData.xlsx")
@@ -39,3 +41,37 @@ count(mainData) # 638
 count(unique(mainData)) #638
 # No duplicates
 
+# Loading examination timetable color palette. 
+distributionColors <- read_excel("distribution_palette.xlsx")
+distributionColors <- distributionColors %>% select('Subject', 'HEX Code')
+colnames(distributionColors) <- c('subject', 'dist_hex_code')
+view(distributionColors)
+### Stream & Subject (Table 3)
+
+stream <- c(rep(c("Physical"), times = 18), 
+            rep(c("Biology"), times = 17), 
+            rep("Food Science and Technology",times=2), 
+            rep("Sports Science and Management",times=2))
+
+subject <- c("MAT", "CHE", "PHY", "STA", "MAN", "CSC", "AMT","ENG","ECN","ICH",
+             "EES", "ICT", "EMF", "PST", "PSC","PCH", "ASP", "ASC", "CHE", "ZOO", "PHY",
+             "PBT", "PBL", "MBL", "EMF", "ARM", "MAN", "FSC", "BIO","ICH","ENG",
+             "GMB", "FSC", "ASB", "ASC", "FST", "ENG","SSM","ENG")                                     
+
+streamData <- data.frame(stream, subject)
+
+streamData <- streamData %>% left_join(distributionColors, by=c('subject'))
+
+## --- Joining Stream and dist_hex_code
+mainData <- mainData %>% left_join( streamData, by=c('subject'))
+
+## --- Joining location_hex_code 
+locationColors <- read_excel("locations_palette.xlsx")
+locationColors <- locationColors %>% select('Location', 'HEX Code')
+colnames(locationColors) <- c('venue', 'venue_hex_code')
+
+mainData <- mainData %>% left_join( locationColors, by=c('venue'))
+
+# View(mainData)
+
+## --- Data preparation for examination distribution
