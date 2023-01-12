@@ -9,9 +9,6 @@ library(plotly)
 
 #Source data
 source('load.R')
-source('minortables.R')
-source('Dataset.R')
-source('finalDatasetModifications.R')
 
 ui = navbarPage(
   
@@ -24,17 +21,14 @@ ui = navbarPage(
                selectInput(
                  inputId = "year1",
                  label = "Select the academic year",
-                 choices = c("First Year",
-                             "Second Year",
-                             "Third Year",
-                             "Fourth Year"), 
+                 choices = yearList, 
                  selected = "All",
                  multiple = FALSE
                ),
                selectInput(
                  inputId = "stream1",
                  label = "Select stream",
-                 choices = sort(unique(table3$stream)), 
+                 choices = streamList, 
                  selected = "All",
                  multiple = FALSE
                ),
@@ -79,17 +73,14 @@ ui = navbarPage(
                selectInput(
                  inputId = "year2",
                  label = "Select the academic year",
-                 choices = c("First Year",
-                             "Second Year",
-                             "Third Year",
-                             "Fourth Year"), 
+                 choices = yearList, 
                  selected = "All",
                  multiple = FALSE
                ),
                selectInput(
                  inputId = "stream2",
                  label = "Select stream",
-                 choices = sort(unique(table3$stream)), 
+                 choices = streamList, 
                  selected = "All",
                  multiple = FALSE
                ),
