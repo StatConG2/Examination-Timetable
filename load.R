@@ -45,7 +45,8 @@ count(unique(mainData)) #638
 distributionColors <- read_excel("distribution_palette.xlsx")
 distributionColors <- distributionColors %>% select('Subject', 'HEX Code')
 colnames(distributionColors) <- c('subject', 'dist_hex_code')
-view(distributionColors)
+# view(distributionColors)
+
 ### Stream & Subject (Table 3)
 
 stream <- c(rep(c("Physical"), times = 18), 
@@ -72,6 +73,49 @@ colnames(locationColors) <- c('venue', 'venue_hex_code')
 
 mainData <- mainData %>% left_join( locationColors, by=c('venue'))
 
-# View(mainData)
+
+## --- Data preparation for overview
+
+overviewData <- subset(mainData, select = c(date, stream, year, degree_type, subject, subject_description, course_code, course, core_optional, dist_hex_code))
+
 
 ## --- Data preparation for examination distribution
+
+distributionData <- subset(mainData, select = c(date, time, stream, year, degree_type, subject, subject_description, course_code, course, core_optional, venue, dist_hex_code))
+
+
+## --- Data preparation for location distribution
+
+locationData <- subset(mainData, select = c(date, start_24hrs, end_24hrs, start, end, venue, venue_hex_code))
+
+
+## --- unique columns needed
+
+# Location
+locationList <- unique(mainData$venue)
+
+# Year
+yearList <- unique(mainData$year)
+
+# Stream
+streamList <- unique(mainData$stream)
+
+# degree_type
+degreetypeList <- unique(mainData$degree_type)
+
+# Subject
+subjectList <- unique(mainData$subject)
+
+# Subject Description
+subdesList <- unique(mainData$subject_description)
+
+# Course 
+courseList <- unique(mainData$course)
+
+
+
+
+
+
+
+
