@@ -1,6 +1,7 @@
 ## --- Sourcing Data
 source('load.R')
 
+## --- Loading libraries
 library(vistime)
 library(plotly)
 library(dplyr)
@@ -8,10 +9,13 @@ library(dplyr)
 ## --- Sub-setting Required Columns
 df <- subset(mainData, select = c(date, subject, year, course, venue))
 
-## --- Date filtration
-df1 <- df %>% filter(year == 1)
-subjects <- df1$subject
+## --- Stream filtration
 
+
+## --- Year filtration
+df1 <- df %>% filter(year == "First Year")
+subjects <- df1$subject
+unique(subjects)
 
 
 ## --- Data generation
