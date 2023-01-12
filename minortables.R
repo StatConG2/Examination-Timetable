@@ -15,13 +15,13 @@ department <- c(rep(c("MAT"), times = 3), rep(c("ZOO"), times = 2),
                 rep(c("CHE"), times = 2), rep(c("CSC"), times = 2),
                 rep(c("FAS"), times = 4), rep(c("PHY"), times = 2),
                 rep(c("FST"), times = 2), rep(c("BIO"), times = 3),
-                rep(c("PCH"), times = 2),
+                rep(c("PCH"), times = 3),
                 c("EMF", "GMB", "SSM", "STA"))
 
 
 subject <- c("MAT", "AMT", "MAN", "ARM", "ZOO", "CHE", "ICH", "CSC",
              "ICT", "ECN", "ASP", "ASB", "ASC", "PHY", "EES", "FST",
-             "FSC", "BIO", "MBL", "PBL", "PCH", "PST", "EMF", "GMB", 
+             "FSC", "BIO", "MBL", "PBL", "PSC", "PCH", "PST", "EMF", "GMB", 
              "SSM", "STA") 
 
 table2 <-  data.frame(department, subject)           
@@ -32,13 +32,13 @@ table2 <-  data.frame(department, subject)
 
 ### Stream & Subject (Table 3)
 
-stream <- c(rep(c("Physical"), times = 17), 
+stream <- c(rep(c("Physical"), times = 18), 
             rep(c("Biology"), times = 17), 
             rep("Food Science and Technology",times=2), 
             rep("Sports Science and Management",times=2))
 
 subject <- c("MAT", "CHE", "PHY", "STA", "MAN", "CSC", "AMT","ENG","ECN","ICH",
-             "EES", "ICT", "EMF", "PST", "PSC", "ASP", "ASC", "CHE", "ZOO", "PHY",
+             "EES", "ICT", "EMF", "PST", "PSC","PCH", "ASP", "ASC", "CHE", "ZOO", "PHY",
              "PBT", "PBL", "MBL", "EMF", "ARM", "MAN", "FSC", "BIO","ICH","ENG",
              "GMB", "FSC", "ASB", "ASC", "FST", "ENG","SSM","ENG")                                     
 
