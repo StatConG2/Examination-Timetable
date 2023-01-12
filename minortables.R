@@ -32,17 +32,16 @@ table2 <-  data.frame(department, subject)
 
 ### Stream & Subject (Table 3)
 
-stream <- c(rep(c("Physical"), times = 16), 
-            rep(c("Biology"), times = 16), 
+stream <- c(rep(c("Physical"), times = 17), 
+            rep(c("Biology"), times = 17), 
             rep("Food Science and Technology",times=2), 
             rep("Sports Science and Management",times=2))
 
-subject <- c("MAT", "CHE", "PHY", "STA", "MAN", "CSC", "AMT","ENG","ECN",
+subject <- c("MAT", "CHE", "PHY", "STA", "MAN", "CSC", "AMT","ENG","ECN","ICH",
              "EES", "ICT", "EMF", "PST", "PSC", "ASP", "ASC", "CHE", "ZOO", "PHY",
-             "PBT", "PBL", "MBL", "EMF", "ARM", "MAN", "FSC", "BIO","ENG",
+             "PBT", "PBL", "MBL", "EMF", "ARM", "MAN", "FSC", "BIO","ICH","ENG",
              "GMB", "FSC", "ASB", "ASC", "FST", "ENG","SSM","ENG")                                     
 
 table3 <- data.frame(stream, subject)
 
 #print(table3)
-
