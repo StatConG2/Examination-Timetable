@@ -95,7 +95,10 @@ locationData <- subset(mainData, select = c(date, start_24hrs, end_24hrs, start,
 locationList <- unique(mainData$venue)
 
 # Year
-yearList <- unique(mainData$year)
+yearList <- c("First Year",
+              "Second Year",
+              "Third Year",
+              "Fourth Year")
 
 # Stream
 streamList <- unique(mainData$stream)
