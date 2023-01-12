@@ -22,6 +22,10 @@ mainData$end_24hrs <- paste(as.character(mainData$date), mainData$end_24hrs)
 mainData$start <- as.POSIXct(strptime(mainData$start_label, format="%H:%M"))
 mainData$end <- as.POSIXct(strptime(mainData$end_label, format="%H:%M"))
 
+## --- Adding start_unix and end_unix
+mainData$start_unix <- as.numeric(as.POSIXct(strptime(mainData$start_24hrs, format="%Y-%m-%d %H:%M"), format="%H:%M"))
+mainData$end_unix <- as.numeric(as.POSIXct(strptime(mainData$end_24hrs, format="%Y-%m-%d %H:%M"), format="%H:%M")) 
+
 ## --- Change the time column to timestamp
 mainData$start_24hrs <- as.POSIXct(strptime(mainData$start_24hrs, format="%Y-%m-%d %H:%M"))
 mainData$end_24hrs <- as.POSIXct(strptime(mainData$end_24hrs, format="%Y-%m-%d %H:%M"))
@@ -31,7 +35,7 @@ mainData$end_24hrs <- as.POSIXct(strptime(mainData$end_24hrs, format="%Y-%m-%d %
 mainData$date <- as.Date(mainData$date)
 # class(mainData$date)
 
-
-
-
+count(mainData) # 638
+count(unique(mainData)) #638
+# No duplicates
 
