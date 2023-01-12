@@ -146,14 +146,12 @@ server <- function(input, output, session) {
     
     stream1.ext <- input$stream1
     
-    table4 <- newLong %>% filter(year == year1.ext) %>%
-      select(year,subject,degree_type) %>%
-      left_join(table3,by="subject") %>%
+    table4 <- overviewData %>% filter(year == year1.ext) %>%
       filter(stream == stream1.ext)
     
     updateSelectInput(session, "degree.type1",
                       label = "Select the degree type",
-                      choices = sort(table4$degree_type))
+                      choices = sort(unique(table4$degree_type)))
   })
   
   ## Update subject selector in overview panel
@@ -167,13 +165,11 @@ server <- function(input, output, session) {
     degree.type1.ext <- input$degree.type1
     
     table5 <- if(stream1.ext %in% c("Food Science and Technology","Sports Science and Technology")){
-      newLong %>% filter (year == year1.ext) %>% 
-        select (year, subject, subject_description, degree_type, course, core_optional) %>% 
-        left_join(table3, by="subject") %>%
+      overviewData %>% filter (year == year1.ext) %>% 
         filter(stream == stream1.ext) 
       
     } else {
-      newLong %>% filter (year == year1.ext) %>% 
+      overviewData %>% filter (year == year1.ext) %>% 
         filter (degree_type == degree.type1.ext) %>%
         select (year, subject, subject_description, degree_type, course, core_optional) %>% 
         left_join(table3, by="subject") %>%
@@ -196,7 +192,7 @@ server <- function(input, output, session) {
   
   subject1.ext <- input$subject1
   
-  table6 <- newLong %>% filter (year == year1.ext) %>% 
+  table6 <- overviewData %>% filter (year == year1.ext) %>% 
       filter (degree_type == degree.type1.ext) %>%
       select (year, subject, subject_description, degree_type, course, core_optional) %>% 
       left_join(table3, by="subject") %>%
@@ -217,7 +213,7 @@ server <- function(input, output, session) {
     
     stream2.ext <- input$stream2
     
-    table4 <- newLong %>% filter(year == year2.ext) %>%
+    table4 <- overviewData %>% filter(year == year2.ext) %>%
       select(year,subject,degree_type) %>%
       left_join(table3,by="subject") %>%
       filter(stream == stream2.ext)
@@ -238,13 +234,13 @@ server <- function(input, output, session) {
     degree.type2.ext <- input$degree.type2
     
     table5 <- if(stream2.ext %in% c("Food Science and Technology","Sports Science and Technology")){
-      newLong %>% filter (year == year2.ext) %>% 
+      overviewData %>% filter (year == year2.ext) %>% 
         select (year, subject, subject_description, degree_type, course, core_optional) %>% 
         left_join(table3, by="subject") %>%
         filter(stream == stream2.ext) 
       
     } else {
-      newLong %>% filter (year == year2.ext) %>% 
+      overviewData %>% filter (year == year2.ext) %>% 
         filter (degree_type == degree.type2.ext) %>%
         select (year, subject, subject_description, degree_type, course, core_optional) %>% 
         left_join(table3, by="subject") %>%
@@ -267,7 +263,7 @@ server <- function(input, output, session) {
     
     subject2.ext <- input$subject2
     
-    table6 <- newLong %>% filter (year == year2.ext) %>% 
+    table6 <- overviewData %>% filter (year == year2.ext) %>% 
       filter (degree_type == degree.type2.ext) %>%
       select (year, subject, subject_description, degree_type, course, core_optional) %>% 
       left_join(table3, by="subject") %>%

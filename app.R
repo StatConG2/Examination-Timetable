@@ -8,7 +8,7 @@ library(lubridate)
 library(plotly)
 
 #Source data
-source('Dataset.R')
+source('load.R')
 
 ui = navbarPage(
   
@@ -19,40 +19,42 @@ ui = navbarPage(
              sidebarPanel(
                width = 3,
                selectInput(
-                 inputId = "yr",
+                 inputId = "year1",
                  label = "Select the academic year",
-                 choices = c("First Year","Second Year","Third Year","Fourth Year"), 
+                 choices = yearList, 
                  selected = "All",
                  multiple = FALSE
-               ),
-               conditionalPanel(
-                 condition = "input.yr =='Third Year'",
-                 selectInput(
-                   "dg.type1", "Select the degree type",
-                   c("General Degree",
-                     "Special Degree"))
-               ),
-               conditionalPanel(
-                 condition = "input.yr =='Fourth Year'",
-                 selectInput(
-                   "dg.type2", "Select the degree type",
-                   c("Special Degree",
-                     "Extended Degree"))
                ),
                selectInput(
-                 inputId = "stream",
+                 inputId = "stream1",
                  label = "Select stream",
-                 choices = sort(unique(table2$stream)), 
+                 choices = streamList, 
                  selected = "All",
                  multiple = FALSE
                ),
+               conditionalPanel(
+                 condition = "(input.year1 == 'Third Year'|| input.year1 == 'Fourth Year') && (input.stream1 == 'Physical' || input.stream1 == 'Biology')",
+                 selectInput(
+                   inputId = "degree.type1",
+                   label = "Select the degree type",
+                   choices =  "",
+                   multiple = FALSE
+                 )),
                selectizeInput(
-                 inputId = "sub",
-                 label = "Select sub",
+                 inputId = "subject1",
+                 label = "Select subject(s)",
                  choices =  "",
                  multiple = TRUE,
-                 options  = list(maxItems = 3)
-               )
+                 options  = list(maxItems = 4)
+               ),
+               conditionalPanel(
+                 condition = "(input.year1 == 'Third Year' || input.year1 == 'Fourth Year') && (input.stream1 == 'Physical' || input.stream1 == 'Biology')",
+                 selectInput(
+                   inputId = "course1",
+                   label = "Select optional courses(s)",
+                   choices =  "",
+                   multiple = TRUE
+                 ))
              ),
              mainPanel(
                fluidRow(
@@ -69,37 +71,43 @@ ui = navbarPage(
              sidebarPanel(
                width = 3,
                selectInput(
-                 inputId = "yr2",
-                 label = "Academic year",
-                 choices = c("First Year",
-                             "Second Year",
-                             "Third Year",
-                             "Fourth Year"), 
+                 inputId = "year2",
+                 label = "Select the academic year",
+                 choices = yearList, 
+                 selected = "All",
+                 multiple = FALSE
+               ),
+               selectInput(
+                 inputId = "stream2",
+                 label = "Select stream",
+                 choices = streamList, 
                  selected = "All",
                  multiple = FALSE
                ),
                conditionalPanel(
-                 condition = "input.yr2 =='Third Year'",
+                 condition = "(input.year2 == 'Third Year'|| input.year2 == 'Fourth Year') && (input.stream2 == 'Physical' || input.stream2 == 'Biology')",
                  selectInput(
-                   "dg.type3", "Degree type",
-                   c("General Degree",
-                     "Special Degree"))
+                   inputId = "degree.type2",
+                   label = "Select the degree type",
+                   choices =  "",
+                   multiple = FALSE
+                 )),
+               selectizeInput(
+                 inputId = "subject2",
+                 label = "Select subject(s)",
+                 choices =  "",
+                 multiple = TRUE,
+                 options  = list(maxItems = 4)
                ),
                conditionalPanel(
-                 condition = "input.yr2 =='Fourth Year'",
+                 condition = "(input.year2 == 'Third Year' || input.year2 == 'Fourth Year') && (input.stream2 == 'Physical' || input.stream2 == 'Biology')",
                  selectInput(
-                   "dg.type4", "Degree type",
-                   c("Special Degree",
-                     "Extended Degree"))
-               ),
-               selectInput(
-                 inputId = "sub2",
-                 label = "Subject(s)",
-                 choices = subjects, 
-                 selected = "All",
-                 multiple = TRUE
-               ),
-               shinyWidgets::airDatepickerInput("daterange", "Date range:",
+                   inputId = "course2",
+                   label = "Select optional courses(s)",
+                   choices =  "",
+                   multiple = TRUE
+                 )),
+               shinyWidgets::airDatepickerInput("daterange2", "Date range:",
                                                 range = TRUE, minDate = Sys.Date())
              ),
              mainPanel(
@@ -114,11 +122,11 @@ ui = navbarPage(
                selectInput(
                  inputId = "location3",
                  label = "Location(s)",
-                 choices = venues, 
+                 choices = locationList, 
                  selected = "All",
                  multiple = TRUE
                ),
-               shinyWidgets::airDatepickerInput("daterange", "Date range:",
+               shinyWidgets::airDatepickerInput("daterange3", "Date range:",
                                                 range = TRUE, minDate = Sys.Date())
              ),
              
@@ -132,84 +140,241 @@ ui = navbarPage(
 
 server <- function(input, output, session) {
   
+  ## Update degree type selector in overview panel
+  
   observe({
     
-    yr1 <- input$yr
+    year1.ext <- input$year1
     
-    dgtype <- if(yr1 %in% c("First Year","Second Year")){
-      print("General Degree")
-    } else if(yr1 == "Third Year"){
-      print(input$dg.type1)
+    stream1.ext <- input$stream1
+    
+    table4 <- overviewData %>% filter(year == year1.ext) %>%
+      filter(stream == stream1.ext)
+    
+    updateSelectInput(session, "degree.type1",
+                      label = "Select the degree type",
+                      choices = sort(unique(table4$degree_type)))
+  })
+  
+  ## Update subject selector in overview panel
+  
+  observe({
+    
+    year1.ext <- input$year1
+    
+    stream1.ext <- input$stream1
+    
+    degree.type1.ext <- input$degree.type1
+    
+    table5 <- if(stream1.ext %in% c("Food Science and Technology","Sports Science and Technology")){
+      overviewData %>% filter (year == year1.ext) %>% 
+        filter(stream == stream1.ext) 
+      
     } else {
-      print(input$dg.type2)
+      overviewData %>% filter (year == year1.ext) %>% 
+        filter (degree_type == degree.type1.ext) %>%
+        filter(stream == stream1.ext)  
     }
     
-    stream1 <- input$stream
+    updateSelectInput(session, "subject1",
+                      label = "Select subject(s)",
+                      choices = sort(unique(table5$subject_description)))
+  })
+  
+  # Update optional course selector in overview panel
+  
+  observe({
+    year1.ext <- input$year1
     
-    table3 <- table2 %>% filter(year == yr1) %>% filter(degreetype == dgtype) %>%
-      filter(stream == stream1)  
+    stream1.ext <- input$stream1
     
-    updateSelectizeInput(session, "sub",
-                         label = "Select sub",
-                         choices = sort(table3$subject_description)
-    )
+    degree.type1.ext <- input$degree.type1
     
-    location3 <- input$location3
+    subject1.ext <- input$subject1
     
+    table6 <- overviewData %>% filter (year == year1.ext) %>% 
+      filter (degree_type == degree.type1.ext) %>%
+      filter(stream == stream1.ext) %>%
+      filter(subject_description %in% subject1.ext) %>%
+      filter(core_optional == 0)
     
+    updateSelectInput(session, "course1",
+                      label = "Select optional course(s)",
+                      choices = sort(unique(table6$course)))
     
   })
+  ## Update degree type selector in distribution panel
+  
+  observe({
+    
+    year2.ext <- input$year2
+    
+    stream2.ext <- input$stream2
+    
+    table4 <- overviewData %>% filter(year == year2.ext) %>%
+     filter(stream == stream2.ext)
+    
+    updateSelectInput(session, "degree.type2",
+                      label = "Select the degree type",
+                      choices = sort(table4$degree_type))
+  })
+  
+  ## Update subject selector in distribution panel
+  
+  observe({
+    
+    year2.ext <- input$year2
+    
+    stream2.ext <- input$stream2
+    
+    degree.type2.ext <- input$degree.type2
+    
+    table5 <- if(stream2.ext %in% c("Food Science and Technology","Sports Science and Technology")){
+      overviewData %>% filter (year == year2.ext) %>% 
+        filter(stream == stream2.ext) 
+      
+    } else {
+      overviewData %>% filter (year == year2.ext) %>% 
+        filter (degree_type == degree.type2.ext) %>%
+        filter(stream == stream2.ext)  
+    }
+    
+    updateSelectInput(session, "subject2",
+                      label = "Select subject(s)",
+                      choices = sort(unique(table5$subject_description)))
+  })
+  
+  # Update optional course selector in distribution panel
+  
+  observe({
+    year2.ext <- input$year2
+    
+    stream2.ext <- input$stream2
+    
+    degree.type2.ext <- input$degree.type2
+    
+    subject2.ext <- input$subject2
+    
+    table6 <- overviewData %>% filter (year == year2.ext) %>% 
+      filter (degree_type == degree.type2.ext) %>%
+      filter(stream == stream2.ext) %>%
+      filter(subject_description %in% subject2.ext) %>%
+      filter(core_optional == 0)
+    
+    updateSelectInput(session, "course2",
+                      label = "Select optional course(s)",
+                      choices = sort(unique(table6$course)))
+    
+  }) 
   
   ### Overview Section
+  
+  # Starting date valuebox
   output$Starting.Date <- renderValueBox({
     
-    sub1 <- input$sub
-    yr1 <- input$yr
-    stream1 <- input$stream
+    subject1.ext <- input$subject1
+    year1.ext <- input$year1
+    stream1.ext <- input$stream
     
-    if(length(sub1)==0){
+    if(length(subject1.ext)==0){
       
-      valueBox("Starting Date", Dataset_1[1,1], icon = icon("calendar"),
+      valueBox("Starting Date", overviewData[1,"date",drop=TRUE], icon = icon("calendar"),
                color = "yellow") 
     } else {
       
-      df <- Dataset_1 %>% filter(year==yr1) %>% filter(subject_description %in% sub1) %>% 
+      df <- overviewData %>% filter(year==year1.ext) %>% 
+        filter(subject_description %in% subject1.ext) %>% 
         select(date)
       
-      valueBox("Starting Date", df[1,1], icon = icon("calendar"),
+      valueBox("Starting Date", df[1,"date",drop=TRUE], icon = icon("calendar"),
                color = "yellow")}
   })
   
+  #Ending date valuebox
   output$Ending.Date <- renderValueBox({
     
-    sub1 <- input$sub
-    yr1 <- input$yr
-    stream1 <- input$stream
+    subject1.ext <- input$subject1
+    year1.ext <- input$year1
+    stream1.ext <- input$stream
     
-    if(length(sub1)==0){
+    if(length(subject1.ext)==0){
       
-      valueBox("Ending Date", Dataset_1[nrow(Dataset_1),1], icon = icon("calendar"),
+      valueBox("Ending Date", overviewData[nrow(overviewData),"date",drop=TRUE], icon = icon("calendar"),
                color = "yellow") 
     } else {
       
-      df <- Dataset_1 %>% filter(year==yr1) %>% filter(subject_description %in% sub1) %>% 
+      df <- overviewData %>% filter(year==year1.ext) %>% 
+        filter(subject_description %in% subject1.ext) %>% 
         select(date)
       
-      valueBox("Ending Date", df[nrow(df),1], icon = icon("calendar"),
+      valueBox("Ending Date", df[nrow(df),"date",drop=TRUE], icon = icon("calendar"),
                color = "yellow")}
   })
   
+  # Plot calendar
   output$Calendar <- renderPlotly({
     
-    sub1 <- input$sub
-    yr1 <- input$yr
+    year1.ext <- input$year1
     
-    df <- Dataset_1 %>% filter(year==yr1) %>% filter(subject_description %in% sub1) %>% 
-      select(date,subject)
+    stream1.ext <- input$stream1
+    
+    degree.type1.ext <- input$degree.type1
+    
+    subject1.ext <- input$subject1
+    
+    optional.courses1.ext <- input$course1
+    
+    df.core <- unique(overviewData) %>% filter(year==year1.ext) %>% 
+      filter(stream == stream1.ext) %>%
+      filter(degree_type == degree.type1.ext) %>%
+      filter(subject_description %in% subject1.ext) %>% 
+      filter(core_optional == 1)
+    
+    df.optional <- if("English" %in% subject1.ext){
+      
+      if(year1.ext %in% c("First Year","Second Year")){
+        
+      overviewData %>% filter(year==year1.ext) %>% 
+      filter(stream == stream1.ext) %>%
+      filter(degree_type == degree.type1.ext) %>%
+      filter(subject_description %in% subject1.ext)%>% 
+          filter(core_optional == 0) 
+        
+      }else{
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(course %in% c(optional.courses1.ext,eng.courseList)) %>% 
+          filter(core_optional == 0)
+        }
+    } else {
+      
+      if(year1.ext %in% c("First Year","Second Year")){
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+        filter(stream == stream1.ext) %>%
+        filter(degree_type == degree.type1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>% 
+          filter(core_optional == 0)
+        
+      } else {
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(course %in% optional.courses1.ext) %>% 
+          filter(core_optional == 0)
+        
+      }}
+    
+    df <- rbind(df.core,df.optional)
     
     # prepare date range
-    start.date <- as.Date(lubridate::floor_date(df[1,1,drop=TRUE], "month"))
-    end.date <- as.Date(lubridate::ceiling_date(df[nrow(df),1,drop=TRUE], "month")-1)
+    start.date <- as.Date(lubridate::floor_date(df[1,"date",drop=TRUE], "month"))
+    end.date <- as.Date(lubridate::ceiling_date(df[nrow(df),"date",drop=TRUE], "month")-1)
     
     dfr <- data.frame(date=seq(from=start.date,to=end.date,by="days"))
     dfr$day <- factor(strftime(dfr$date, format="%a"), levels=rev(c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")))
@@ -218,16 +383,22 @@ server <- function(input, output, session) {
     dfr$ddate <- factor(strftime(dfr$date, format="%d"))
     
     # add date tracks
-    dfr <- dfr %>% left_join(df,by="date")
-    dfr$subject[is.na(dfr$subject)==TRUE] <- "MAT"
-    colnames(dfr)[6] <- "Subject"
+    dfr <- dfr %>% left_join(df[,c("date","subject","course","dist_hex_code")],by="date")
+    dfr1 <- dfr %>% mutate(dist_hex_code = ifelse(is.na(dist_hex_code)==TRUE,"#FFFFFF",dist_hex_code)) %>%
+      mutate(subject = ifelse(is.na(subject)==TRUE,"",subject)) %>%
+      mutate(course = ifelse(is.na(course)==TRUE,"",course)) %>%
+      rename("Subject" = "subject")
+    
+    # define color codes
+    colour_palette <- unique(streamData[,"dist_hex_code"]) 
+    names(colour_palette) <- levels(streamData$subject)
     
     # plot
-    p <- ggplot(dfr, aes(x=week, y=day,
-                         text = paste("Subject :", Subject)))+
+    p <- ggplot(dfr1, aes(x=week, y=day,
+                         text = paste(Subject,":", course)))+
       geom_tile(aes(fill=Subject))+
       geom_text(aes(label=ddate))+
-      scale_fill_manual(values=c("#8dd3c7", "#ffffb3", "#fb8072", "#d3d3d3"))+
+      scale_fill_manual(values = colour_palette)+
       facet_grid(~month, scales="free", space="free")+
       labs(x="Week", y="")+
       theme_bw(base_size=10)+
@@ -256,7 +427,7 @@ server <- function(input, output, session) {
     
 })
   
-  output$Barchart <- renderPlot ({
+  output$Barchart <- renderPlot({
     
     yr2 <- input$yr
     sub2 <- input$sub
