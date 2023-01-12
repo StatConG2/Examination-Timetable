@@ -54,7 +54,7 @@ ui = navbarPage(
                  options  = list(maxItems = 4)
                ),
                conditionalPanel(
-                 condition = "(input.year1 == 'Third Year' || input$year1 == 'Fourth Year') && (input.stream1 == 'Physical' || input.stream1 == 'Biology')",
+                 condition = "(input.year1 == 'Third Year' || input.year1 == 'Fourth Year') && (input.stream1 == 'Physical' || input.stream1 == 'Biology')",
                  selectInput(
                  inputId = "course1",
                  label = "Select optional courses(s)",
@@ -79,7 +79,10 @@ ui = navbarPage(
                selectInput(
                  inputId = "year2",
                  label = "Select the academic year",
-                 choices = c("First Year","Second Year","Third Year","Fourth Year"), 
+                 choices = c("First Year",
+                             "Second Year",
+                             "Third Year",
+                             "Fourth Year"), 
                  selected = "All",
                  multiple = FALSE
                ),
@@ -90,33 +93,36 @@ ui = navbarPage(
                  selected = "All",
                  multiple = FALSE
                ),
-               selectInput(
-                 inputId = "degree.type2",
-                 label = "Select degree type",
-                 choices =  "",
-                 multiple = FALSE
-               ),
+               conditionalPanel(
+                 condition = "(input.year2 == 'Third Year'|| input.year2 == 'Fourth Year') && (input.stream2 == 'Physical' || input.stream2 == 'Biology')",
+                 selectInput(
+                   inputId = "degree.type2",
+                   label = "Select the degree type",
+                   choices =  "",
+                   multiple = FALSE
+                 )),
                selectizeInput(
                  inputId = "subject2",
-                 label = "Select sub",
+                 label = "Select subject(s)",
                  choices =  "",
                  multiple = TRUE,
-                 options  = list(maxItems = 3)
+                 options  = list(maxItems = 4)
                ),
-               selectInput(
-                 inputId = "course2",
-                 label = "Select optional course(s)",
-                 choices =  "",
-                 multiple = TRUE
-               ),
+               conditionalPanel(
+                 condition = "(input.year2 == 'Third Year' || input.year2 == 'Fourth Year') && (input.stream2 == 'Physical' || input.stream2 == 'Biology')",
+                 selectInput(
+                   inputId = "course2",
+                   label = "Select optional courses(s)",
+                   choices =  "",
+                   multiple = TRUE
+                 )),
                shinyWidgets::airDatepickerInput("daterange2", "Date range:",
                                                 range = TRUE, minDate = Sys.Date())
              ),
              mainPanel(
                
-             )
-           )
-  ),
+             ))),
+ 
   tabPanel("Location",
            sidebarLayout(
              sidebarPanel(
@@ -124,7 +130,7 @@ ui = navbarPage(
                selectInput(
                  inputId = "location3",
                  label = "Location(s)",
-                 choices = venues, 
+                 choices = locationList, 
                  selected = "All",
                  multiple = TRUE
                ),
@@ -138,7 +144,6 @@ ui = navbarPage(
            )
   )
 )
-
 
 server <- function(input, output, session) {
   
@@ -190,6 +195,8 @@ server <- function(input, output, session) {
   })
   
   # Update optional course selector in overview panel
+  
+  observe({
   year1.ext <- input$year1
   
   stream1.ext <- input$stream1
@@ -206,9 +213,82 @@ server <- function(input, output, session) {
     filter(subject_description %in% subject1.ext) %>%
     filter(core_optional == 0)
   
-  updateSelectInput(session, "subject1",
-                    label = "Select subject(s)",
+  updateSelectInput(session, "course1",
+                    label = "Select optional course(s)",
                     choices = sort(unique(table6$course)))
+  
+  })
+  ## Update degree type selector in distribution panel
+  
+  observe({
+    
+    year2.ext <- input$year2
+    
+    stream2.ext <- input$stream2
+    
+    table4 <- newLong %>% filter(year == year2.ext) %>%
+      select(year,subject,degree_type) %>%
+      left_join(table3,by="subject") %>%
+      filter(stream == stream2.ext)
+    
+    updateSelectInput(session, "degree.type2",
+                      label = "Select the degree type",
+                      choices = sort(table4$degree_type))
+  })
+  
+  ## Update subject selector in distribution panel
+  
+  observe({
+    
+    year2.ext <- input$year2
+    
+    stream2.ext <- input$stream2
+    
+    degree.type2.ext <- input$degree.type2
+    
+    table5 <- if(stream2.ext %in% c("Food Science and Technology","Sports Science and Technology")){
+      newLong %>% filter (year == year2.ext) %>% 
+        select (year, subject, subject_description, degree_type, course, core_optional) %>% 
+        left_join(table3, by="subject") %>%
+        filter(stream == stream2.ext) 
+      
+    } else {
+      newLong %>% filter (year == year2.ext) %>% 
+        filter (degree_type == degree.type2.ext) %>%
+        select (year, subject, subject_description, degree_type, course, core_optional) %>% 
+        left_join(table3, by="subject") %>%
+        filter(stream == stream2.ext)  
+    }
+    
+    updateSelectInput(session, "subject2",
+                      label = "Select subject(s)",
+                      choices = sort(unique(table5$subject_description)))
+  })
+  
+  # Update optional course selector in distribution panel
+  
+  observe({
+    year2.ext <- input$year2
+    
+    stream2.ext <- input$stream2
+    
+    degree.type2.ext <- input$degree.type2
+    
+    subject2.ext <- input$subject2
+    
+    table6 <- newLong %>% filter (year == year2.ext) %>% 
+      filter (degree_type == degree.type2.ext) %>%
+      select (year, subject, subject_description, degree_type, course, core_optional) %>% 
+      left_join(table3, by="subject") %>%
+      filter(stream == stream2.ext) %>%
+      filter(subject_description %in% subject2.ext) %>%
+      filter(core_optional == 0)
+    
+    updateSelectInput(session, "course2",
+                      label = "Select optional course(s)",
+                      choices = sort(unique(table6$course)))
+    
+  }) 
 }
 
 shinyApp(ui,server)
