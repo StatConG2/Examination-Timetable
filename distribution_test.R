@@ -6,22 +6,23 @@ library(vistime)
 library(plotly)
 library(dplyr)
 
-## --- Sub-setting Required Columns
-df <- subset(mainData, select = c(date, subject, year, course, venue))
 
 ## --- Stream filtration
-
+df <- distributionData %>% filter(stream %in% c('Biology', 'Physical'))
 
 ## --- Year filtration
-df1 <- df %>% filter(year == "First Year")
-subjects <- df1$subject
-unique(subjects)
+df1 <- df %>% filter(year %in% c("Third Year"))
+subjects <- distributionColors$subject
+# unique(subjects)
 
+## --- Degree type filtration
+
+df2 <- df1 %>% filter(degree_type %in% c("General"))
 
 ## --- Data generation
 
-hex_codes = rep(c('#ff5733',  '#bf3d21', '#842b18', '#ece42d', '#a09a18', '#41d017', '#1779d0', '#bc17d0', '#d0174c', '#d01717', '#750505'), 2)
-colorPalette = data.frame(unique(subjects), hex_codes)
+hex_codes <- distributionColors$dist_hex_code
+colorPalette <- data.frame(unique(subjects), hex_codes)
 colnames(colorPalette) <- c('subject', "hexcode")
 
 merge_df = merge(x = df1, y = colorPalette, by = "subject", all.x = TRUE)
