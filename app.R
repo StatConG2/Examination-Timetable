@@ -49,7 +49,7 @@ ui = navbarPage(
                  options  = list(maxItems = 4)
                ),
                conditionalPanel(
-                 condition = "(input.year1 == 'Third Year' || input.year1 == 'Fourth Year') && (input.stream1 == 'Physical' || input.stream1 == 'Biology')",
+                 condition = "(input.year1 == 'Third Year' || input.year1 == 'Fourth Year') && (input.stream1 == 'Physical' || input.stream1 == 'Biology') && (input.degree.type1 == 'General Degree')",
                  selectInput(
                    inputId = "course1",
                    label = "Select optional courses(s)",
@@ -60,9 +60,10 @@ ui = navbarPage(
              mainPanel(
                fluidRow(
                  valueBoxOutput("Starting.Date",width = 5),
-                 valueBoxOutput("Ending.Date",width = 5)),
+                 valueBoxOutput("Ending.Date",width = 5),
+                 valueBoxOutput("Remaining.days",width = 11)),
                  fluidRow(plotlyOutput("Calendar"),
-                          plotOutput("Barchart")
+                          plotlyOutput("Barchart")
                )
              )
            )
@@ -108,10 +109,7 @@ ui = navbarPage(
                    multiple = TRUE
                  )),
                shinyWidgets::airDatepickerInput("daterange2", "Date range:",
-                                                range = TRUE, minDate = Sys.Date()-120,
-                                                value = seq.Date(min(distributionData$date),
-                                                            max(distributionData$date),
-                                                            by="days")),
+                                                range = TRUE, minDate = Sys.Date()-120),
                radioButtons(
                  inputId = "downloadtype1",
                  label = "Select the File Type",
@@ -132,7 +130,7 @@ ui = navbarPage(
                  inputId = "location3",
                  label = "Location(s)",
                  choices = locationList, 
-                 selected = locationList,
+                 selected = locationList[1],
                  multiple = TRUE
                ),
                shinyWidgets::airDatepickerInput("daterange3", "Date range:",
@@ -142,7 +140,8 @@ ui = navbarPage(
              
              mainPanel(
                fluidRow(
-                 plotlyOutput('location.distribution')
+                 box(width = 12,solidHeader = TRUE, (div(style='width:1400px;overflow-x: scroll;height:800px;overflow-y: scroll;',
+                     plotlyOutput("location.distribution",height = 1200, width = 2000))))
                )
                
              )
@@ -259,7 +258,7 @@ server <- function(input, output, session) {
     
     updateSelectInput(session, "subject2",
                       label = "Select subject(s)",
-                      choices = subject.list,
+                      choices = c("All",subject.list),
                       selected = subject.list)
   })
   
@@ -330,6 +329,51 @@ server <- function(input, output, session) {
                color = "yellow")}
   })
   
+  # Remaining days valuebox
+ 
+  output$Remaining.days <- renderValueBox({
+    
+    subject1.ext <- input$subject1
+    year1.ext <- input$year1
+    stream1.ext <- input$stream1
+    
+    df3 <- overviewData %>% filter(year==year1.ext) %>% 
+      filter(stream == stream1.ext) %>%
+      filter(subject_description %in% subject1.ext) %>% 
+      select(date,subject_description,course) 
+    
+    today <- Sys.Date()-120
+    examstart <- overviewData[1,1,drop=TRUE]
+    examsday1 <- df3[1,1,drop=TRUE]
+    
+    date.diff.zero <- as.Date(examstart)-as.Date(today)
+    date.diff <- as.Date(examsday1)-as.Date(today)
+    
+    df4 <- df3 %>% filter(date >= today) %>% select(subject_description,course)
+    
+    next.sub <- df4[1,c(1:2),drop=TRUE]
+    next.sub1 <- next.sub[1,1,drop=TRUE]
+    next.co1 <-next.sub[1,2,drop=TRUE]
+    
+    start.sub <-df3[1,c(2:3),drop=TRUE]
+    start.sub1 <- start.sub[1,1,drop=TRUE]
+    start.co1 <- start.sub[1,2,drop=TRUE]
+    
+    if(length(subject1.ext)==0){
+      
+      valueBox("Remaining Days for your next paper", paste("Remaining", date.diff.zero, "Days","to","start",""), icon = icon("hourglass-half"),
+               color = "yellow") 
+    } else {
+      
+      df <- overviewData %>% filter(year==year1.ext) %>% 
+        filter(subject_description %in% subject1.ext) %>% 
+        select(date)
+      
+      valueBox("Remaining Days for your next paper",paste(next.sub1,"-",next.co1,"Remaining", date.diff, "Days"), icon = icon("hourglass-half"),
+               color = "yellow")}
+  }) 
+  
+  
   # Plot calendar
   output$Calendar <- renderPlotly({
     
@@ -343,9 +387,10 @@ server <- function(input, output, session) {
     
     optional.courses1.ext <- input$course1
     
-    df.core <- if(stream1.ext %in% c("Sports Science and Management","Food Science and Technology" )){
+    df.core <- if((stream1.ext %in% c("Sports Science and Management","Food Science and Technology"))||(year1.ext %in% c("First Year","Second Year"))){
       overviewData %>% filter(year==year1.ext) %>% 
         filter(stream == stream1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>%
         filter(core_optional == 1)
     }else{
       overviewData %>% filter(year==year1.ext) %>% 
@@ -415,8 +460,7 @@ server <- function(input, output, session) {
       rename("Subject" = "subject")
     
     # define color codes
-    colour_palette <- unique(streamData[,"dist_hex_code"]) 
-    names(colour_palette) <- levels(streamData$subject)
+    colour_palette <- unique(streamData[,"dist_hex_code",drop=TRUE]) 
     
     # plot
     p <- ggplot(dfr1, aes(x=week, y=day,
@@ -452,42 +496,56 @@ server <- function(input, output, session) {
     
 })
   
-  # output$Barchart <- renderPlot({
-  #   
-  #   yr2 <- input$yr
-  #   sub2 <- input$sub
-  #   
-  #   dgtype <- if(yr2 %in% c("First Year","Second Year")){
-  #     print("General Degree")
-  #   } else if(yr2 == "Third Year"){
-  #     print(input$dg.type1)
-  #   } else {
-  #     print(input$dg.type2)
-  #   }   
-  #   
-  #   today <- Sys.Date()- 90
-  #   
-  #   df1 <- Dataset_1 %>% filter(year==yr2) %>% filter(subject_description %in% sub2) %>% 
-  #     select(date,subject)   
-  #   
-  #   df2 <- df1 %>% filter(date >= today) %>% select(subject)
-  #   
-  #   df3 <- df2 %>% group_by(subject) %>% count(subject) %>% ungroup()
-  #   
-  #   
-  #   g1 <- ggplot(df3, aes(subject, n))
-  #   g1 + geom_bar(stat="identity", width = 0.5, fill="tomato2") + coord_flip()+
-  #     geom_col(fill = "#0099f9")+
-  #     
-  #     labs(
-  #       y = "Number of Remaining Papers",
-  #       x = "Subjects" ) +
-  #     theme(
-  #       axis.title.x = element_text(color = "#0099f9", size = 10, face = "bold"),
-  #       axis.title.y = element_text(color = "#0099f9", size = 10, face = "bold") 
-  #       
-  #     )
-  # })
+  # barchart 
+  
+   output$Barchart <- renderPlotly({
+     
+     year1.ext <- input$year1
+     
+     stream1.ext <- input$stream1
+     
+     degree.type1.ext <- input$degree.type1
+     
+     subject1.ext <- input$subject1
+     
+     optional.courses1.ext <- input$course1
+    
+     today <- Sys.Date()- 120
+     
+     df1 <- overviewData %>% filter(year==year1.ext) %>% 
+       filter(stream %in% stream1.ext) %>%
+       filter(subject_description %in% subject1.ext) %>% 
+     select(year,date,subject, dist_hex_code,course)   
+     
+     df2 <- df1 %>% filter(date >= today) %>% select(date,subject, dist_hex_code)
+     
+     df3 <- df2 %>% group_by(subject, dist_hex_code) %>% count(subject) %>% ungroup()
+     
+     trace1 <- list(
+       type = "bar", 
+       x = df3$subject, 
+       y = df3$n, 
+       orientation = 'h',
+       marker = list(color = df3$dist_hex_code,plot_bgcolor='#e5ecf6'),
+       xaxis = list(
+         title=list(text='Subject')),
+       yaxis = list(
+         title=list(text='Remaining Number of Papers')))
+     
+     data <- list(trace1)
+     layout <- list(title = "Remaining Number of Papers")
+     
+     fig <- plot_ly()
+     
+     fig.1 <- add_trace(fig, type=trace1$type, x=trace1$y, y=trace1$x, marker=trace1$marker)
+     
+     fig.2 <- layout(fig.1,title="Remaining Number of Papers")
+     
+     fig.3 <- layout(fig.1,title="Remaining Number of Papers",
+                     yaxis = list(title ="Subject"))
+     fig.3
+  
+   })
   
   ### Exam distribution
   
@@ -507,24 +565,6 @@ server <- function(input, output, session) {
     start.date <- as.Date(daterange2.ext[1])
     end.date <- as.Date(daterange2.ext[length(daterange2.ext)])
 
-    # ## --- Year filtration
-    # 
-    # df <- distributionData %>% filter(year %in% year2.ext) #must be selected
-    # 
-    # ## --- Stream filtration
-    # 
-    # df <- df %>% filter(stream %in% stream2.ext) #must be selected
-    # 
-    # ## --- Degree type filtration
-    # 
-    # df <- df %>% filter(degree_type %in% degree.type2.ext)
-    # 
-    # ## -- Subject filtration
-    # 
-    # df <- df %>% filter(subject_description %in% subject2.ext)
-    
-    ## -- Course filtration
-    
     df.core <- distributionData %>% filter(year==year2.ext) %>% 
       filter(stream == stream2.ext) %>%
       filter(degree_type == degree.type2.ext) %>%
@@ -629,8 +669,7 @@ server <- function(input, output, session) {
   df1 <- df %>% subset(date>= start.date & date <= end.date)
   
   # define color codes
-  location_palette <- unique(locationColors[,"venue_hex_code"]) 
-  names(location_palette) <- levels(locationColors$venue)
+  location_palette <- unique(df1$venue_hex_code) 
   
   ## --- Defining tooltip for hover
   
@@ -646,10 +685,9 @@ server <- function(input, output, session) {
       date_labels = "%H:%M") +
     facet_grid(. ~ df1$date) +
     labs(y = "Location(s)", x = "Time", colour='Location(s)') +
-    theme(axis.text.x=element_text(size=8, angle=25)) +
-    scale_color_manual(values = location_palette)
+    theme(axis.text.x=element_text(size=8, angle=25))+
+    scale_color_manual(values=location_palette)
   
-  #  scale_color_manual(values=color_palette)
   # If legend is not necessary remove it
   #  theme(legend.position = "none")
   
