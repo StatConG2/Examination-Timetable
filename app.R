@@ -6,6 +6,7 @@ library(dplyr)
 library(magrittr)
 library(lubridate)
 library(plotly)
+library(vistime)
 
 #Source data
 source('load.R')
@@ -92,12 +93,11 @@ ui = navbarPage(
                    choices =  "",
                    multiple = FALSE
                  )),
-               selectizeInput(
+               selectInput(
                  inputId = "subject2",
                  label = "Select subject(s)",
                  choices =  "",
-                 multiple = TRUE,
-                 options  = list(maxItems = 4)
+                 multiple = TRUE
                ),
                conditionalPanel(
                  condition = "(input.year2 == 'Third Year' || input.year2 == 'Fourth Year') && (input.stream2 == 'Physical' || input.stream2 == 'Biology')",
@@ -108,9 +108,18 @@ ui = navbarPage(
                    multiple = TRUE
                  )),
                shinyWidgets::airDatepickerInput("daterange2", "Date range:",
-                                                range = TRUE, minDate = Sys.Date()-120)
+                                                range = TRUE, minDate = Sys.Date()-120,
+                                                value = seq.Date(min(distributionData$date),
+                                                            max(distributionData$date),
+                                                            by="days")),
+               radioButtons(
+                 inputId = "downloadtype1",
+                 label = "Select the File Type",
+                 choices = list("png", "pdf")
+               )
              ),
              mainPanel(
+               fluidRow(plotlyOutput('Exam.distribution'))
                
              )
            )
@@ -123,11 +132,12 @@ ui = navbarPage(
                  inputId = "location3",
                  label = "Location(s)",
                  choices = locationList, 
-                 selected = "All",
+                 selected = locationList,
                  multiple = TRUE
                ),
                shinyWidgets::airDatepickerInput("daterange3", "Date range:",
-                                                range = TRUE, minDate = Sys.Date()-120)
+                                                range = TRUE, minDate = Sys.Date()-120,
+                                                value = locationData$date)
              ),
              
              mainPanel(
@@ -169,7 +179,7 @@ server <- function(input, output, session) {
     
     degree.type1.ext <- input$degree.type1
     
-    table5 <- if(stream1.ext %in% c("Food Science and Technology","Sports Science and Technology")){
+    table5 <- if(stream1.ext %in% c("Food Science and Technology","Sports Science and Management")){
       overviewData %>% filter (year == year1.ext) %>% 
         filter(stream == stream1.ext) 
       
@@ -235,7 +245,7 @@ server <- function(input, output, session) {
     
     degree.type2.ext <- input$degree.type2
     
-    table5 <- if(stream2.ext %in% c("Food Science and Technology","Sports Science and Technology")){
+    table5 <- if(stream2.ext %in% c("Food Science and Technology","Sports Science and Management")){
       overviewData %>% filter (year == year2.ext) %>% 
         filter(stream == stream2.ext) 
       
@@ -245,9 +255,12 @@ server <- function(input, output, session) {
         filter(stream == stream2.ext)  
     }
     
+    subject.list <- sort(unique(table5$subject_description))
+    
     updateSelectInput(session, "subject2",
                       label = "Select subject(s)",
-                      choices = sort(unique(table5$subject_description)))
+                      choices = subject.list,
+                      selected = subject.list)
   })
   
   # Update optional course selector in distribution panel
@@ -330,11 +343,17 @@ server <- function(input, output, session) {
     
     optional.courses1.ext <- input$course1
     
-    df.core <- unique(overviewData) %>% filter(year==year1.ext) %>% 
+    df.core <- if(stream1.ext %in% c("Sports Science and Management","Food Science and Technology" )){
+      overviewData %>% filter(year==year1.ext) %>% 
+        filter(stream == stream1.ext) %>%
+        filter(core_optional == 1)
+    }else{
+      overviewData %>% filter(year==year1.ext) %>% 
       filter(stream == stream1.ext) %>%
       filter(degree_type == degree.type1.ext) %>%
       filter(subject_description %in% subject1.ext) %>% 
       filter(core_optional == 1)
+      }
     
     df.optional <- if("English" %in% subject1.ext){
       
@@ -470,6 +489,129 @@ server <- function(input, output, session) {
   #     )
   # })
   
+  ### Exam distribution
+  
+  output$Exam.distribution <- renderPlotly({
+    
+    year2.ext <- input$year2
+    
+    stream2.ext <- input$stream2
+    
+    degree.type2.ext <- input$degree.type2
+    
+    subject2.ext <- input$subject2
+    
+    optional.courses2.ext <- input$course2
+    
+    daterange2.ext <- input$daterange2
+    start.date <- as.Date(daterange2.ext[1])
+    end.date <- as.Date(daterange2.ext[length(daterange2.ext)])
+
+    # ## --- Year filtration
+    # 
+    # df <- distributionData %>% filter(year %in% year2.ext) #must be selected
+    # 
+    # ## --- Stream filtration
+    # 
+    # df <- df %>% filter(stream %in% stream2.ext) #must be selected
+    # 
+    # ## --- Degree type filtration
+    # 
+    # df <- df %>% filter(degree_type %in% degree.type2.ext)
+    # 
+    # ## -- Subject filtration
+    # 
+    # df <- df %>% filter(subject_description %in% subject2.ext)
+    
+    ## -- Course filtration
+    
+    df.core <- distributionData %>% filter(year==year2.ext) %>% 
+      filter(stream == stream2.ext) %>%
+      filter(degree_type == degree.type2.ext) %>%
+      filter(subject_description %in% subject2.ext) %>% 
+      filter(core_optional == 1)
+    
+    df.optional <- if("English" %in% subject2.ext){
+      
+      if(year2.ext %in% c("First Year","Second Year")){
+        
+        distributionData %>% filter(year==year2.ext) %>% 
+          filter(stream == stream2.ext) %>%
+          filter(degree_type == degree.type2.ext) %>%
+          filter(subject_description %in% subject2.ext)%>% 
+          filter(core_optional == 0) 
+        
+      }else{
+        
+        distributionData %>% filter(year==year2.ext) %>% 
+          filter(stream == stream2.ext) %>%
+          filter(degree_type == degree.type2.ext) %>%
+          filter(subject_description %in% subject2.ext) %>% 
+          filter(course %in% c(optional.courses2.ext,eng.courseList)) %>% 
+          filter(core_optional == 0)
+      }
+    } else {
+      
+      if(year2.ext %in% c("First Year","Second Year")){
+        
+        distributionData %>% filter(year==year2.ext) %>% 
+          filter(stream == stream2.ext) %>%
+          filter(degree_type == degree.type2.ext) %>%
+          filter(subject_description %in% subject2.ext) %>% 
+          filter(core_optional == 0)
+        
+      } else {
+        
+        distributionData %>% filter(year==year2.ext) %>% 
+          filter(stream == stream2.ext) %>%
+          filter(degree_type == degree.type2.ext) %>%
+          filter(subject_description %in% subject2.ext) %>% 
+          filter(course %in% optional.courses2.ext) %>% 
+          filter(core_optional == 0)
+        
+      }}
+    
+    df <- rbind(df.core,df.optional) %>%
+      subset(date>= start.date & date <= end.date)
+    
+  
+    ## --- Data generation
+    
+    subjects <- df$subject
+    hex_codes <- df$dist_hex_code
+    dates <- df$date
+    courses = df$course
+    venues = df$venue
+    times = df$time
+    merge_df = data.frame(subjects, hex_codes, dates, times, courses, venues)
+    
+    ## --- Defining tooltip
+    
+    tooltip_cons = c()
+    for(i in 1:length(merge_df$venues)){
+      course = merge_df$courses[i]
+      start_date = merge_df$dates[i]
+      venue = merge_df$venues[i]
+      time = merge_df$times[i]
+      tooltip_con = sprintf("Course:%s \n Date:%s \n Time:%s \n Venue:%s", course, start_date, time, venue)
+      tooltip_cons = append(tooltip_cons, tooltip_con)
+    }
+    
+    
+    ## --- Exam distribution
+    
+    distribution <- data.frame(
+      Subject = merge_df$subjects,
+      start = merge_df$dates,
+      end = merge_df$dates + 1,
+      color = merge_df$hex_codes,
+      tooltip = tooltip_cons
+    )
+    
+    vistime(distribution, col.event = "Subject")
+    
+  })
+  
   
   ### Location/s Section
   
@@ -491,30 +633,30 @@ server <- function(input, output, session) {
   names(location_palette) <- levels(locationColors$venue)
   
   ## --- Defining tooltip for hover
-  tooltip_cons = c()
-  for(i in 1:length(merge_df$venue)){
-    course = merge_df$course[i]
-    start_date = merge_df$date[i]
-    venue = merge_df$venue[i]
-    tooltip_con = sprintf("Course:%s \n Date:%s \n Venue:%s", course, start_date, venue)
-    tooltip_cons = append(tooltip_cons, tooltip_con)
-  }
   
-  locationPlot <- ggplot(data = df1, aes(y = venue, x = start, colour = venue)) + 
-    geom_segment(aes(yend = venue, xend = end), size = 3) +
+  locationPlot <- ggplot(data = df1, 
+                         aes(y = venue, 
+                             x = start, 
+                             colour = venue)) + 
+    geom_segment(aes(yend = venue, xend = end,
+                     text = sprintf("Venue:%s \n Date:%s \n Time:%s ", venue, date, time)), size = 3 ) +
     scale_x_datetime(
       limits = c(min(df$start), max(df$end)),
       breaks = scales::date_breaks("1 hour"),
       date_labels = "%H:%M") +
     facet_grid(. ~ df1$date) +
     labs(y = "Location(s)", x = "Time", colour='Location(s)') +
-    theme(axis.text.x=element_text(size=8, angle=25)) 
+    theme(axis.text.x=element_text(size=8, angle=25)) +
+    scale_color_manual(values = location_palette)
   
   #  scale_color_manual(values=color_palette)
   # If legend is not necessary remove it
   #  theme(legend.position = "none")
   
-  ggplotly(locationPlot) })
+  ggplotly(locationPlot,
+           tooltip = 'text')
+  
+  })
   
 }
 
