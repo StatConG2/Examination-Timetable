@@ -21,19 +21,18 @@ df <- locationData %>% filter(venue %in% c('NFC III', 'NFC IV'))
 df1 <- df %>% filter(date %in% c(as.Date('2022-10-25'), as.Date('2022-10-26')))
 
 # define color codes
-location_palette <- unique(streamData[,"dist_hex_code"]) 
-names(colour_palette) <- levels(streamData$subject)
-## --- Venue Colors filtration
-color_palette <- paste(locationColors$venue, locationColors$venue_hex_code, sep =  " = ")
-
+location_palette <- unique(locationColors[,"venue_hex_code"]) 
+#names(location_palette) <- levels(locationColors$venue)
 
 locationPlot <- ggplot(data = df1, aes(y = venue, x = start, colour = venue)) + 
-  geom_segment(aes(yend = venue, xend = end), size = 3) +
+  geom_segment(aes(yend = venue, xend = end,
+                   text = sprintf("Venue:%s \n Date:%s \n Time:%s ", venue, date, time)), 
+               size = 3) +
   scale_x_datetime(
     limits = c(min(df$start), max(df$end)),
     breaks = scales::date_breaks("1 hour"),
     date_labels = "%H:%M") +
-  facet_grid(df1$date ~ . ) +
+  facet_grid(. ~ df1$date) +
   labs(y = "Location/s", x = "Time Period", colour='Location/s') +
   theme(axis.text.x=element_text(size=8, angle=60)) 
  
@@ -41,7 +40,8 @@ locationPlot <- ggplot(data = df1, aes(y = venue, x = start, colour = venue)) +
 # If legend is not necessary remove it
 #  theme(legend.position = "none")
 
-ggplotly(locationPlot) 
+ggplotly(locationPlot,
+         tooltip = 'text')
 
   
 unique(df1$venue_hex_code)
