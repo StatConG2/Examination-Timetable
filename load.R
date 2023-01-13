@@ -88,7 +88,7 @@ distributionData <- unique(distributionData)
 
 ## --- Data preparation for location distribution
 
-locationData <- subset(mainData, select = c(date, start_24hrs, end_24hrs, start, end, venue, venue_hex_code))
+locationData <- subset(mainData, select = c(date, time, start_24hrs, end_24hrs, start, end, venue, venue_hex_code))
 locationData <- unique(locationData)
 
 ## --- unique columns needed
