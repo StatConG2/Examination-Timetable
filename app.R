@@ -49,7 +49,7 @@ ui = navbarPage(
                  options  = list(maxItems = 4)
                ),
                conditionalPanel(
-                 condition = "(input.year1 == 'Third Year' || input.year1 == 'Fourth Year') && (input.stream1 == 'Physical' || input.stream1 == 'Biology') && (input.degree.type1 == 'General Degree')",
+                 condition = "(input.year1 == 'Third Year' || input.year1 == 'Fourth Year') && (input.stream1 == 'Physical' || input.stream1 == 'Biology')",
                  selectInput(
                    inputId = "course1",
                    label = "Select optional courses(s)",
@@ -109,12 +109,7 @@ ui = navbarPage(
                    multiple = TRUE
                  )),
                shinyWidgets::airDatepickerInput("daterange2", "Date range:",
-                                                range = TRUE, minDate = Sys.Date()-120),
-               radioButtons(
-                 inputId = "downloadtype1",
-                 label = "Select the File Type",
-                 choices = list("png", "pdf")
-               )
+                                                range = TRUE, minDate = Sys.Date()-120)
              ),
              mainPanel(
                fluidRow(plotlyOutput('Exam.distribution'))
@@ -130,7 +125,7 @@ ui = navbarPage(
                  inputId = "location3",
                  label = "Location(s)",
                  choices = locationList, 
-                 selected = locationList[1],
+                 selected = "NFC IV",
                  multiple = TRUE
                ),
                shinyWidgets::airDatepickerInput("daterange3", "Date range:",
@@ -141,7 +136,7 @@ ui = navbarPage(
              mainPanel(
                fluidRow(
                  box(width = 12,solidHeader = TRUE, (div(style='width:1400px;overflow-x: scroll;height:800px;overflow-y: scroll;',
-                     plotlyOutput("location.distribution",height = 800, width = 1200))))
+                     plotlyOutput("location.distribution",height = 1200, width = 1200))))
                )
                
              )
@@ -258,8 +253,8 @@ server <- function(input, output, session) {
     
     updateSelectInput(session, "subject2",
                       label = "Select subject(s)",
-                      choices = c("All",subject.list),
-                      selected = subject.list)
+                      choices = subject.list,
+                      selected = subject.list[1])
   })
   
   # Update optional course selector in distribution panel
@@ -290,9 +285,70 @@ server <- function(input, output, session) {
   # Starting date valuebox
   output$Starting.Date <- renderValueBox({
     
-    subject1.ext <- input$subject1
     year1.ext <- input$year1
-    stream1.ext <- input$stream
+    
+    stream1.ext <- input$stream1
+    
+    degree.type1.ext <- input$degree.type1
+    
+    subject1.ext <- input$subject1
+    
+    optional.courses1.ext <- input$course1
+    
+    df.core <- if((stream1.ext %in% c("Sports Science and Management","Food Science and Technology"))||(year1.ext %in% c("First Year","Second Year"))){
+      overviewData %>% filter(year==year1.ext) %>% 
+        filter(stream == stream1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>%
+        filter(core_optional == 1)
+    }else{
+      overviewData %>% filter(year==year1.ext) %>% 
+        filter(stream == stream1.ext) %>%
+        filter(degree_type == degree.type1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>% 
+        filter(core_optional == 1)
+    }
+    
+    df.optional <- if("English" %in% subject1.ext){
+      
+      if(year1.ext %in% c("First Year","Second Year")){
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext)%>% 
+          filter(core_optional == 0) 
+        
+      }else{
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(course %in% c(optional.courses1.ext,eng.courseList)) %>% 
+          filter(core_optional == 0)
+      }
+    } else {
+      
+      if(year1.ext %in% c("First Year","Second Year")){
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(core_optional == 0)
+        
+      } else {
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(course %in% optional.courses1.ext) %>% 
+          filter(core_optional == 0)
+        
+      }}
+    
+    df <- rbind(df.core,df.optional)
     
     if(length(subject1.ext)==0){
       
@@ -311,9 +367,70 @@ server <- function(input, output, session) {
   #Ending date valuebox
   output$Ending.Date <- renderValueBox({
     
-    subject1.ext <- input$subject1
     year1.ext <- input$year1
-    stream1.ext <- input$stream
+    
+    stream1.ext <- input$stream1
+    
+    degree.type1.ext <- input$degree.type1
+    
+    subject1.ext <- input$subject1
+    
+    optional.courses1.ext <- input$course1
+    
+    df.core <- if((stream1.ext %in% c("Sports Science and Management","Food Science and Technology"))||(year1.ext %in% c("First Year","Second Year"))){
+      overviewData %>% filter(year==year1.ext) %>% 
+        filter(stream == stream1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>%
+        filter(core_optional == 1)
+    }else{
+      overviewData %>% filter(year==year1.ext) %>% 
+        filter(stream == stream1.ext) %>%
+        filter(degree_type == degree.type1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>% 
+        filter(core_optional == 1)
+    }
+    
+    df.optional <- if("English" %in% subject1.ext){
+      
+      if(year1.ext %in% c("First Year","Second Year")){
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext)%>% 
+          filter(core_optional == 0) 
+        
+      }else{
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(course %in% c(optional.courses1.ext,eng.courseList)) %>% 
+          filter(core_optional == 0)
+      }
+    } else {
+      
+      if(year1.ext %in% c("First Year","Second Year")){
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(core_optional == 0)
+        
+      } else {
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(course %in% optional.courses1.ext) %>% 
+          filter(core_optional == 0)
+        
+      }}
+    
+    df <- rbind(df.core,df.optional)
     
     if(length(subject1.ext)==0){
       
@@ -330,17 +447,73 @@ server <- function(input, output, session) {
   })
   
   # Remaining days valuebox
- 
+  
   output$Remaining.days <- renderValueBox({
     
-    subject1.ext <- input$subject1
     year1.ext <- input$year1
+    
     stream1.ext <- input$stream1
     
-    df3 <- overviewData %>% filter(year==year1.ext) %>% 
-      filter(stream == stream1.ext) %>%
-      filter(subject_description %in% subject1.ext) %>% 
-      select(date,subject_description,course) 
+    degree.type1.ext <- input$degree.type1
+    
+    subject1.ext <- input$subject1
+    
+    optional.courses1.ext <- input$course1
+    
+    df.core <- if((stream1.ext %in% c("Sports Science and Management","Food Science and Technology"))||(year1.ext %in% c("First Year","Second Year"))){
+      overviewData %>% filter(year==year1.ext) %>% 
+        filter(stream == stream1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>%
+        filter(core_optional == 1)
+    }else{
+      overviewData %>% filter(year==year1.ext) %>% 
+        filter(stream == stream1.ext) %>%
+        filter(degree_type == degree.type1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>% 
+        filter(core_optional == 1)
+    }
+    
+    df.optional <- if("English" %in% subject1.ext){
+      
+      if(year1.ext %in% c("First Year","Second Year")){
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext)%>% 
+          filter(core_optional == 0) 
+        
+      }else{
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(course %in% c(optional.courses1.ext,eng.courseList)) %>% 
+          filter(core_optional == 0)
+      }
+    } else {
+      
+      if(year1.ext %in% c("First Year","Second Year")){
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(core_optional == 0)
+        
+      } else {
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(course %in% optional.courses1.ext) %>% 
+          filter(core_optional == 0)
+        
+      }}
+    
+    df3 <- rbind(df.core,df.optional)
     
     today <- Sys.Date()-120
     examstart <- overviewData[1,1,drop=TRUE]
@@ -361,15 +534,12 @@ server <- function(input, output, session) {
     
     if(length(subject1.ext)==0){
       
-      valueBox("Remaining Days for Your Next Paper", paste("Remaining", date.diff.zero, "Days","to","start",""), icon = icon("hourglass-half"),
+      valueBox("Remaining Days for your next paper", paste("Remaining", date.diff.zero, "Days","to","start",""), icon = icon("hourglass-half"),
                color = "yellow") 
     } else {
       
-      df <- overviewData %>% filter(year==year1.ext) %>% 
-        filter(subject_description %in% subject1.ext) %>% 
-        select(date)
-      
-      valueBox("Remaining Days for Your Next Paper",paste(next.sub1,"-",next.co1,"Remaining", date.diff, "Days"), icon = icon("hourglass-half"),
+     
+      valueBox("Remaining Days for your next paper",paste(next.sub1,"-",next.co1,"Remaining", date.diff, "Days"), icon = icon("hourglass-half"),
                color = "yellow")}
   }) 
   
@@ -394,20 +564,20 @@ server <- function(input, output, session) {
         filter(core_optional == 1)
     }else{
       overviewData %>% filter(year==year1.ext) %>% 
-      filter(stream == stream1.ext) %>%
-      filter(degree_type == degree.type1.ext) %>%
-      filter(subject_description %in% subject1.ext) %>% 
-      filter(core_optional == 1)
-      }
+        filter(stream == stream1.ext) %>%
+        filter(degree_type == degree.type1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>% 
+        filter(core_optional == 1)
+    }
     
     df.optional <- if("English" %in% subject1.ext){
       
       if(year1.ext %in% c("First Year","Second Year")){
         
-      overviewData %>% filter(year==year1.ext) %>% 
-      filter(stream == stream1.ext) %>%
-      filter(degree_type == degree.type1.ext) %>%
-      filter(subject_description %in% subject1.ext)%>% 
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext)%>% 
           filter(core_optional == 0) 
         
       }else{
@@ -418,15 +588,15 @@ server <- function(input, output, session) {
           filter(subject_description %in% subject1.ext) %>% 
           filter(course %in% c(optional.courses1.ext,eng.courseList)) %>% 
           filter(core_optional == 0)
-        }
+      }
     } else {
       
       if(year1.ext %in% c("First Year","Second Year")){
         
         overviewData %>% filter(year==year1.ext) %>% 
-        filter(stream == stream1.ext) %>%
-        filter(degree_type == degree.type1.ext) %>%
-        filter(subject_description %in% subject1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
           filter(core_optional == 0)
         
       } else {
@@ -464,7 +634,7 @@ server <- function(input, output, session) {
     
     # plot
     p <- ggplot(dfr1, aes(x=week, y=day,
-                         text = paste(Subject,":", course)))+
+                          text = paste(Subject,":", course)))+
       geom_tile(aes(fill=Subject))+
       geom_text(aes(label=ddate))+
       scale_fill_manual(values = colour_palette)+
@@ -494,58 +664,111 @@ server <- function(input, output, session) {
              paper_bgcolor='#252A2E',
              plot_bgcolor='#252A2E')
     
-})
+  })
   
   # barchart 
   
-   output$Barchart <- renderPlotly({
-     
-     year1.ext <- input$year1
-     
-     stream1.ext <- input$stream1
-     
-     degree.type1.ext <- input$degree.type1
-     
-     subject1.ext <- input$subject1
-     
-     optional.courses1.ext <- input$course1
+  output$Barchart <- renderPlotly({
     
-     today <- Sys.Date()- 120
-     
-     df1 <- overviewData %>% filter(year==year1.ext) %>% 
-       filter(stream %in% stream1.ext) %>%
-       filter(subject_description %in% subject1.ext) %>% 
-     select(year,date,subject, dist_hex_code,course)   
-     
-     df2 <- df1 %>% filter(date >= today) %>% select(date,subject, dist_hex_code)
-     
-     df3 <- df2 %>% group_by(subject, dist_hex_code) %>% count(subject) %>% ungroup()
-     
-     trace1 <- list(
-       type = "bar", 
-       x = df3$subject, 
-       y = df3$n, 
-       orientation = 'h',
-       marker = list(color = df3$dist_hex_code,plot_bgcolor='#e5ecf6'),
-       xaxis = list(
-         title=list(text='Subject')),
-       yaxis = list(
-         title=list(text='Remaining Number of Papers')))
-     
-     data <- list(trace1)
-     layout <- list(title = "Remaining Number of Papers")
-     
-     fig <- plot_ly()
-     
-     fig.1 <- add_trace(fig, type=trace1$type, x=trace1$y, y=trace1$x, marker=trace1$marker)
-     
-     fig.2 <- layout(fig.1,title="Remaining Number of Papers")
-     
-     fig.3 <- layout(fig.1,title="Remaining Number of Papers",
-                     yaxis = list(title ="Subject"))
-     fig.3
-  
-   })
+    year1.ext <- input$year1
+    
+    stream1.ext <- input$stream1
+    
+    degree.type1.ext <- input$degree.type1
+    
+    subject1.ext <- input$subject1
+    
+    optional.courses1.ext <- input$course1
+    
+    df.core <- if((stream1.ext %in% c("Sports Science and Management","Food Science and Technology"))||(year1.ext %in% c("First Year","Second Year"))){
+      overviewData %>% filter(year==year1.ext) %>% 
+        filter(stream == stream1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>%
+        filter(core_optional == 1)
+    }else{
+      overviewData %>% filter(year==year1.ext) %>% 
+        filter(stream == stream1.ext) %>%
+        filter(degree_type == degree.type1.ext) %>%
+        filter(subject_description %in% subject1.ext) %>% 
+        filter(core_optional == 1)
+    }
+    
+    df.optional <- if("English" %in% subject1.ext){
+      
+      if(year1.ext %in% c("First Year","Second Year")){
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext)%>% 
+          filter(core_optional == 0) 
+        
+      }else{
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(course %in% c(optional.courses1.ext,eng.courseList)) %>% 
+          filter(core_optional == 0)
+      }
+    } else {
+      
+      if(year1.ext %in% c("First Year","Second Year")){
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(core_optional == 0)
+        
+      } else {
+        
+        overviewData %>% filter(year==year1.ext) %>% 
+          filter(stream == stream1.ext) %>%
+          filter(degree_type == degree.type1.ext) %>%
+          filter(subject_description %in% subject1.ext) %>% 
+          filter(course %in% optional.courses1.ext) %>% 
+          filter(core_optional == 0)
+        
+      }}
+    
+    df <- rbind(df.core,df.optional)
+    
+    today <- Sys.Date()- 120
+    
+    df1 <- df %>% 
+      select(year,date,subject, dist_hex_code,course)   
+    
+    df2 <- df1 %>% filter(date >= today) %>% select(date,subject, dist_hex_code)
+    
+    df3 <- df2 %>% group_by(subject, dist_hex_code) %>% count(subject) %>% ungroup()
+    
+    trace1 <- list(
+      type = "bar", 
+      x = df3$subject, 
+      y = df3$n, 
+      orientation = 'h',
+      marker = list(color = df3$dist_hex_code,plot_bgcolor='#e5ecf6'),
+      xaxis = list(
+        title=list(text='Subject')),
+      yaxis = list(
+        title=list(text='Remaining Number of Papers')))
+    
+    data <- list(trace1)
+    layout <- list(title = "Remaining Number of Papers")
+    
+    fig <- plot_ly()
+    
+    fig.1 <- add_trace(fig, type=trace1$type, x=trace1$y, y=trace1$x, marker=trace1$marker)
+    
+    fig.2 <- layout(fig.1,title="Remaining Number of Papers")
+    
+    fig.3 <- layout(fig.1,title="Remaining Number of Papers",
+                    yaxis = list(title ="Subject"))
+    fig.3
+    
+  })
   
   ### Exam distribution
   
