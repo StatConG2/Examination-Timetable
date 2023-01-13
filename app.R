@@ -108,7 +108,7 @@ ui = navbarPage(
                    multiple = TRUE
                  )),
                shinyWidgets::airDatepickerInput("daterange2", "Date range:",
-                                                range = TRUE, minDate = Sys.Date())
+                                                range = TRUE, minDate = Sys.Date()-120)
              ),
              mainPanel(
                
@@ -127,10 +127,13 @@ ui = navbarPage(
                  multiple = TRUE
                ),
                shinyWidgets::airDatepickerInput("daterange3", "Date range:",
-                                                range = TRUE, minDate = Sys.Date())
+                                                range = TRUE, minDate = Sys.Date()-120)
              ),
              
              mainPanel(
+               fluidRow(
+                 plotlyOutput('location.distribution')
+               )
                
              )
            )
@@ -176,9 +179,12 @@ server <- function(input, output, session) {
         filter(stream == stream1.ext)  
     }
     
+    subject.list <- sort(unique(table5$subject_description))
+    
     updateSelectInput(session, "subject1",
                       label = "Select subject(s)",
-                      choices = sort(unique(table5$subject_description)))
+                      choices = subject.list,
+                      selected = subject.list[1])
   })
   
   # Update optional course selector in overview panel
@@ -384,8 +390,8 @@ server <- function(input, output, session) {
     
     # add date tracks
     dfr <- dfr %>% left_join(df[,c("date","subject","course","dist_hex_code")],by="date")
-    dfr1 <- dfr %>% mutate(dist_hex_code = ifelse(is.na(dist_hex_code)==TRUE,"#FFFFFF",dist_hex_code)) %>%
-      mutate(subject = ifelse(is.na(subject)==TRUE,"",subject)) %>%
+    dfr1 <- dfr %>% mutate(dist_hex_code = ifelse(is.na(dist_hex_code)==TRUE,"yellow",dist_hex_code)) %>%
+      mutate(subject = ifelse(is.na(subject)==TRUE,"NO exam",subject)) %>%
       mutate(course = ifelse(is.na(course)==TRUE,"",course)) %>%
       rename("Subject" = "subject")
     
@@ -427,47 +433,78 @@ server <- function(input, output, session) {
     
 })
   
-  output$Barchart <- renderPlot({
-    
-    yr2 <- input$yr
-    sub2 <- input$sub
-    
-    dgtype <- if(yr2 %in% c("First Year","Second Year")){
-      print("General Degree")
-    } else if(yr2 == "Third Year"){
-      print(input$dg.type1)
-    } else {
-      print(input$dg.type2)
-    }   
-    
-    today <- Sys.Date()- 90
-    
-    df1 <- Dataset_1 %>% filter(year==yr2) %>% filter(subject_description %in% sub2) %>% 
-      select(date,subject)   
-    
-    df2 <- df1 %>% filter(date >= today) %>% select(subject)
-    
-    df3 <- df2 %>% group_by(subject) %>% count(subject) %>% ungroup()
-    
-    
-    g1 <- ggplot(df3, aes(subject, n))
-    g1 + geom_bar(stat="identity", width = 0.5, fill="tomato2") + coord_flip()+
-      geom_col(fill = "#0099f9")+
-      
-      labs(
-        y = "Number of Remaining Papers",
-        x = "Subjects" ) +
-      theme(
-        axis.title.x = element_text(color = "#0099f9", size = 10, face = "bold"),
-        axis.title.y = element_text(color = "#0099f9", size = 10, face = "bold") 
-        
-      )
-  })
+  # output$Barchart <- renderPlot({
+  #   
+  #   yr2 <- input$yr
+  #   sub2 <- input$sub
+  #   
+  #   dgtype <- if(yr2 %in% c("First Year","Second Year")){
+  #     print("General Degree")
+  #   } else if(yr2 == "Third Year"){
+  #     print(input$dg.type1)
+  #   } else {
+  #     print(input$dg.type2)
+  #   }   
+  #   
+  #   today <- Sys.Date()- 90
+  #   
+  #   df1 <- Dataset_1 %>% filter(year==yr2) %>% filter(subject_description %in% sub2) %>% 
+  #     select(date,subject)   
+  #   
+  #   df2 <- df1 %>% filter(date >= today) %>% select(subject)
+  #   
+  #   df3 <- df2 %>% group_by(subject) %>% count(subject) %>% ungroup()
+  #   
+  #   
+  #   g1 <- ggplot(df3, aes(subject, n))
+  #   g1 + geom_bar(stat="identity", width = 0.5, fill="tomato2") + coord_flip()+
+  #     geom_col(fill = "#0099f9")+
+  #     
+  #     labs(
+  #       y = "Number of Remaining Papers",
+  #       x = "Subjects" ) +
+  #     theme(
+  #       axis.title.x = element_text(color = "#0099f9", size = 10, face = "bold"),
+  #       axis.title.y = element_text(color = "#0099f9", size = 10, face = "bold") 
+  #       
+  #     )
+  # })
   
   
   ### Location/s Section
   
+  output$location.distribution <- renderPlotly({
+    
+  location3.ext <- input$location3
+  daterange3.ext <- input$daterange3
+  start.date <- as.Date(daterange3.ext[1])
+  end.date <- as.Date(daterange3.ext[length(daterange3.ext)])
   
+  ## --- location filtration
+  df <- locationData %>% filter(venue %in% location3.ext)
+  
+  ## --- Date filtration
+  df1 <- df %>% subset(date>= start.date & date <= end.date)
+  
+  # define color codes
+  location_palette <- unique(locationColors[,"venue_hex_code"]) 
+  names(location_palette) <- levels(locationColors$venue)
+  
+  locationPlot <- ggplot(data = df1, aes(y = venue, x = start, colour = venue)) + 
+    geom_segment(aes(yend = venue, xend = end), size = 3) +
+    scale_x_datetime(
+      limits = c(min(df$start), max(df$end)),
+      breaks = scales::date_breaks("1 hour"),
+      date_labels = "%H:%M") +
+    facet_grid(df1$date ~ . ) +
+    labs(y = "Location/s", x = "Time Period", colour='Location/s') +
+    theme(axis.text.x=element_text(size=8, angle=25)) 
+  
+  #  scale_color_manual(values=color_palette)
+  # If legend is not necessary remove it
+  #  theme(legend.position = "none")
+  
+  ggplotly(locationPlot) })
   
 }
 
