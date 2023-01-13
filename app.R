@@ -13,7 +13,7 @@ source('load.R')
 
 ui = navbarPage(
   
-  "Examination Timetable Dashboard", theme = shinytheme("slate"),
+  "Examination Timetable - FAS, USJ", theme = shinytheme("slate"),
   useShinydashboard(),
   tabPanel("Overview",
            sidebarLayout(
@@ -68,7 +68,7 @@ ui = navbarPage(
              )
            )
   ),
-  tabPanel("Exam distribution",
+  tabPanel("Exam Distribution",
            sidebarLayout(
              sidebarPanel(
                width = 3,
@@ -141,7 +141,7 @@ ui = navbarPage(
              mainPanel(
                fluidRow(
                  box(width = 12,solidHeader = TRUE, (div(style='width:1400px;overflow-x: scroll;height:800px;overflow-y: scroll;',
-                     plotlyOutput("location.distribution",height = 1200, width = 2000))))
+                     plotlyOutput("location.distribution",height = 800, width = 1200))))
                )
                
              )
@@ -361,7 +361,7 @@ server <- function(input, output, session) {
     
     if(length(subject1.ext)==0){
       
-      valueBox("Remaining Days for your next paper", paste("Remaining", date.diff.zero, "Days","to","start",""), icon = icon("hourglass-half"),
+      valueBox("Remaining Days for Your Next Paper", paste("Remaining", date.diff.zero, "Days","to","start",""), icon = icon("hourglass-half"),
                color = "yellow") 
     } else {
       
@@ -369,7 +369,7 @@ server <- function(input, output, session) {
         filter(subject_description %in% subject1.ext) %>% 
         select(date)
       
-      valueBox("Remaining Days for your next paper",paste(next.sub1,"-",next.co1,"Remaining", date.diff, "Days"), icon = icon("hourglass-half"),
+      valueBox("Remaining Days for Your Next Paper",paste(next.sub1,"-",next.co1,"Remaining", date.diff, "Days"), icon = icon("hourglass-half"),
                color = "yellow")}
   }) 
   
