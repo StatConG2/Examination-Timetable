@@ -94,7 +94,7 @@ locationData <- unique(locationData)
 ## --- unique columns needed
 
 # Location
-locationList <- unique(mainData$venue)
+locationList <- sort(unique(mainData$venue))
 
 # Year
 yearList <- c("First Year",
@@ -103,13 +103,13 @@ yearList <- c("First Year",
               "Fourth Year")
 
 # Stream
-streamList <- unique(mainData$stream)
+streamList <- sort(unique(mainData$stream))
 
 # degree_type
 degreetypeList <- unique(mainData$degree_type)
 
 # Subject
-subjectList <- unique(mainData$subject)
+subjectList <- sort(unique(mainData$subject))
 
 # Subject Description
 subdesList <- unique(mainData$subject_description)
