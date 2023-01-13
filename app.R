@@ -490,14 +490,24 @@ server <- function(input, output, session) {
   location_palette <- unique(locationColors[,"venue_hex_code"]) 
   names(location_palette) <- levels(locationColors$venue)
   
+  ## --- Defining tooltip for hover
+  tooltip_cons = c()
+  for(i in 1:length(merge_df$venue)){
+    course = merge_df$course[i]
+    start_date = merge_df$date[i]
+    venue = merge_df$venue[i]
+    tooltip_con = sprintf("Course:%s \n Date:%s \n Venue:%s", course, start_date, venue)
+    tooltip_cons = append(tooltip_cons, tooltip_con)
+  }
+  
   locationPlot <- ggplot(data = df1, aes(y = venue, x = start, colour = venue)) + 
     geom_segment(aes(yend = venue, xend = end), size = 3) +
     scale_x_datetime(
       limits = c(min(df$start), max(df$end)),
       breaks = scales::date_breaks("1 hour"),
       date_labels = "%H:%M") +
-    facet_grid(df1$date ~ . ) +
-    labs(y = "Location/s", x = "Time Period", colour='Location/s') +
+    facet_grid(. ~ df1$date) +
+    labs(y = "Location(s)", x = "Time", colour='Location(s)') +
     theme(axis.text.x=element_text(size=8, angle=25)) 
   
   #  scale_color_manual(values=color_palette)
