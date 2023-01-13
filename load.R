@@ -106,7 +106,7 @@ yearList <- c("First Year",
 streamList <- sort(unique(mainData$stream))
 
 # degree_type
-degreetypeList <- unique(mainData$degree_type)
+degreetypeList <- sort(unique(mainData$degree_type))
 
 # Subject
 subjectList <- sort(unique(mainData$subject))
